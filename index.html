@@ -7,123 +7,965 @@
     <title>MCFA Accounts ⚡</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* جميع الأنماط كما هي دون تغيير (تم حذفها للاختصار، ولكن سيتم تضمينها كاملة في النهاية) */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; padding-bottom: 160px; transition: all 0.3s ease; }
-        .maintenance-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9998; justify-content: center; align-items: center; backdrop-filter: blur(6px); }
-        .maintenance-overlay.active { display: flex; }
-        .maintenance-box { background: #1a1a1a; border: 2px solid #ff4444; border-radius: 20px; padding: 40px 50px; max-width: 500px; text-align: center; color: #fff; box-shadow: 0 0 60px rgba(255,68,68,0.3); }
-        .maintenance-box h2 { color: #ff4444; font-size: 2rem; margin-bottom: 15px; }
-        .maintenance-box p { font-size: 1.2rem; color: #aaa; }
-        .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9997; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; width: 90%; max-width: 500px; }
-        .toast { background: rgba(0,0,0,0.9); border: 1px solid #00ff00; border-radius: 12px; padding: 14px 20px; color: #fff; font-size: 0.95rem; box-shadow: 0 0 30px rgba(0,255,0,0.15); animation: toastIn 0.5s ease, toastOut 0.5s 4.5s ease forwards; width: 100%; text-align: center; pointer-events: auto; backdrop-filter: blur(4px); }
-        .toast span { color: #00ff00; }
-        @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
-        .lang-toggle-wrap { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; gap: 6px; background: rgba(0, 0, 0, 0.7); padding: 6px 10px; border-radius: 30px; border: 1px solid #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.15); }
-        .lang-btn { background: transparent; border: none; color: #888; font-size: 0.85rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; font-family: 'Cairo', sans-serif; }
-        .lang-btn:hover { color: #fff; }
-        .lang-btn.active { background: #00ff00; color: #000; box-shadow: 0 0 15px rgba(0, 255, 0, 0.4); }
-        .glow-center { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 255, 0, 0.12) 0%, rgba(0, 255, 0, 0.04) 30%, transparent 70%); pointer-events: none; z-index: 0; animation: pulseGlow 4s ease-in-out infinite; }
-        @keyframes pulseGlow { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
-        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-        .particle { position: absolute; width: 2px; height: 2px; background: #00ff00; border-radius: 50%; opacity: 0.4; animation: floatParticle 12s infinite; }
-        @keyframes floatParticle { 0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.5; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
-        .container { position: relative; z-index: 1; text-align: center; padding: 20px; padding-bottom: 40px; width: 100%; max-width: 700px; }
-        .title { font-size: 3.8rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3), 0 0 80px rgba(0, 255, 0, 0.1); margin-bottom: 50px; animation: floatTitle 3s ease-in-out infinite; letter-spacing: 2px; word-break: break-word; }
-        @keyframes floatTitle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        .claim-btn { background: linear-gradient(135deg, #00d924 0%, #00ff00 50%, #00d924 100%); color: #000; font-size: 2rem; font-weight: 900; padding: 25px 60px; border: none; border-radius: 20px; cursor: pointer; box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2), inset 0 2px 0 rgba(255, 255, 255, 0.3); transition: all 0.3s ease; position: relative; overflow: hidden; animation: pulseBtn 2s ease-in-out infinite; font-family: 'Cairo', sans-serif; }
-        .claim-btn:disabled { opacity: 0.5; cursor: not-allowed; animation: none; transform: scale(0.98); background: linear-gradient(135deg, #444 0%, #666 50%, #444 100%); box-shadow: 0 0 15px rgba(255, 0, 0, 0.2); }
-        @keyframes pulseBtn { 0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2); } 50% { transform: scale(1.04); box-shadow: 0 0 50px rgba(0, 255, 0, 0.6), 0 0 100px rgba(0, 255, 0, 0.3); } }
-        .claim-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-4px); box-shadow: 0 0 60px rgba(0, 255, 0, 0.8), 0 0 120px rgba(0, 255, 0, 0.4); }
-        .claim-btn::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.25), transparent); transform: rotate(45deg); animation: shine 3s infinite; }
-        .claim-btn:disabled::before { animation: none; opacity: 0; }
-        @keyframes shine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
-        .account-display { display: none; margin-top: 40px; background: rgba(0, 0, 0, 0.85); border: 2px solid #00ff00; border-radius: 15px; padding: 30px; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 0 30px rgba(0, 255, 0, 0.2); animation: slideIn 0.5s ease-out; }
-        .account-display.active { display: block; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .account-info { color: #00ff00; font-size: 1.2rem; margin-bottom: 15px; text-align: left; }
-        .account-info label { color: #888; font-size: 0.85rem; display: block; margin-bottom: 4px; }
-        .account-info .value { color: #fff; font-size: 1.2rem; font-weight: 700; word-break: break-all; }
-        .copy-btn { background: linear-gradient(135deg, #00d924, #00ff00); color: #000; font-size: 1.1rem; font-weight: 700; padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; margin-top: 15px; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0, 255, 0, 0.3); font-family: 'Cairo', sans-serif; }
-        .copy-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 255, 0, 0.5); }
-        .copy-btn.copied { background: linear-gradient(135deg, #444, #666); color: #fff; }
-        .empty-msg { color: #ff4444; font-size: 1.2rem; margin-top: 25px; display: none; font-weight: 700; }
-        .empty-msg.active { display: block; }
-        .status-msg { color: #ffaa00; font-size: 1.1rem; margin-top: 20px; font-weight: 700; min-height: 32px; display: none; animation: fadeInUp 0.4s ease-out; }
-        .status-msg.active { display: block; }
-        .status-msg.vpn { color: #ff4444; }
-        .status-msg.cooldown { color: #ffaa00; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .counters-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; gap: 15px; animation: fadeInUp 1s ease-out; flex-wrap: wrap; justify-content: center; }
-        .counter-box { background: rgba(0, 0, 0, 0.85); border: 2px solid; border-radius: 15px; padding: 14px 24px; text-align: center; min-width: 150px; transition: all 0.5s ease; box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); }
-        .counter-box .label { font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-        .counter-box .number { font-size: 1.8rem; font-weight: 900; color: #fff; }
-        .counter-box.available { border-color: #00ff00; color: #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.25); }
-        .counter-box.claimed { border-color: #00aaff; color: #00aaff; box-shadow: 0 0 20px rgba(0, 170, 255, 0.25); }
-        .counter-box.total { border-color: #ffaa00; color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.25); }
-        .counter-box.available.warning { border-color: #ffaa00; color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.3); }
-        .counter-box.available.empty { border-color: #ff4444; color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.3); }
-        .admin-panel-wrap { position: fixed; bottom: 100px; right: 20px; z-index: 100; }
-        .admin-toggle { background: rgba(255, 255, 255, 0.08); color: #888; border: 1px solid #333; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; font-family: 'Cairo', sans-serif; font-weight: 700; }
-        .admin-toggle:hover { color: #00ff00; border-color: #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.15); }
-        .admin-panel { display: none; position: fixed; bottom: 140px; right: 20px; width: 480px; max-height: 70vh; background: rgba(10, 10, 10, 0.97); border: 2px solid #00ff00; border-radius: 16px; padding: 24px; box-shadow: 0 0 40px rgba(0, 255, 0, 0.15); overflow-y: auto; z-index: 101; backdrop-filter: blur(8px); }
-        .admin-panel.active { display: block; }
-        .admin-panel h3 { color: #00ff00; margin-bottom: 18px; font-size: 1.3rem; font-weight: 900; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .admin-panel textarea { width: 100%; height: 120px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #00ff00; padding: 12px; font-family: 'Courier New', monospace; font-size: 0.85rem; resize: vertical; margin-bottom: 12px; outline: none; transition: border 0.3s ease; }
-        .admin-panel textarea:focus { border-color: #00ff00; }
-        .admin-panel .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-        .admin-btn { background: #00ff00; color: #000; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s ease; font-family: 'Cairo', sans-serif; flex: 1; min-width: 100px; }
-        .admin-btn:hover:not(:disabled) { transform: scale(1.04); box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); }
-        .admin-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
-        .admin-btn.danger { background: #ff4444; color: #fff; }
-        .admin-btn.danger:hover:not(:disabled) { box-shadow: 0 0 20px rgba(255, 68, 68, 0.3); }
-        .admin-btn.warning { background: #ffaa00; color: #000; }
-        .admin-btn.warning:hover:not(:disabled) { box-shadow: 0 0 20px rgba(255, 170, 0, 0.3); }
-        .admin-btn.info { background: #00aaff; color: #000; }
-        .admin-btn.info:hover:not(:disabled) { box-shadow: 0 0 20px rgba(0, 170, 255, 0.3); }
-        .admin-panel .stats { color: #888; font-size: 0.9rem; margin-top: 8px; border-top: 1px solid #222; padding-top: 12px; }
-        .admin-panel .settings-group { background: #111; border-radius: 10px; padding: 14px; margin-top: 12px; border: 1px solid #2a2a2a; }
-        .admin-panel .settings-group label { color: #aaa; font-size: 0.8rem; display: block; margin-top: 8px; font-weight: 700; }
-        .admin-panel .settings-group input { width: 100%; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.9rem; margin-top: 4px; outline: none; transition: border 0.3s; }
-        .admin-panel .settings-group input:focus { border-color: #00ff00; }
-        .admin-panel .settings-group .btn-row { margin-top: 12px; }
-        .log-table-wrap { max-height: 200px; overflow-y: auto; margin-top: 12px; border: 1px solid #333; border-radius: 8px; }
-        .log-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; color: #ccc; }
-        .log-table th { background: #111; color: #00ff00; padding: 8px 6px; text-align: left; position: sticky; top: 0; z-index: 2; }
-        .log-table td { padding: 6px 8px; border-bottom: 1px solid #222; word-break: break-word; }
-        .log-table tr:hover td { background: #1a1a1a; }
-        .maintenance-indicator { display: inline-block; background: #ff4444; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; margin-left: 10px; }
-        .password-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; }
-        .password-overlay.active { display: flex; }
-        .password-modal { background: rgba(10, 10, 10, 0.96); border: 2px solid #00ff00; border-radius: 20px; padding: 40px 36px; max-width: 400px; width: 90%; box-shadow: 0 0 60px rgba(0, 255, 0, 0.2); text-align: center; animation: modalPop 0.3s ease-out; }
-        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .password-modal h2 { color: #00ff00; font-size: 1.5rem; margin-bottom: 20px; font-weight: 900; }
-        .password-modal input[type="password"] { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #333; background: #1a1a1a; color: #fff; font-size: 1.1rem; outline: none; transition: border 0.3s ease; font-family: 'Cairo', sans-serif; text-align: center; letter-spacing: 4px; }
-        .password-modal input[type="password"]:focus { border-color: #00ff00; }
-        .password-modal .pw-btn-row { display: flex; gap: 12px; margin-top: 20px; justify-content: center; }
-        .password-modal .pw-btn { padding: 12px 32px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.3s ease; font-family: 'Cairo', sans-serif; }
-        .password-modal .pw-btn.confirm { background: #00ff00; color: #000; }
-        .password-modal .pw-btn.confirm:hover { box-shadow: 0 0 25px rgba(0, 255, 0, 0.4); transform: scale(1.04); }
-        .password-modal .pw-btn.cancel { background: #333; color: #aaa; }
-        .password-modal .pw-btn.cancel:hover { background: #444; color: #fff; }
-        .password-modal .pw-error { color: #ff4444; font-size: 0.9rem; margin-top: 14px; min-height: 24px; font-weight: 700; }
-        .subscribe-panel { position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 50; background: rgba(0, 0, 0, 0.85); border: 2px solid #ff0000; border-right: none; border-radius: 16px 0 0 16px; padding: 20px 16px; box-shadow: 0 0 40px rgba(255, 0, 0, 0.2); max-width: 140px; text-align: center; transition: all 0.3s ease; backdrop-filter: blur(6px); }
-        .subscribe-panel:hover { box-shadow: 0 0 60px rgba(255, 0, 0, 0.35); border-color: #ff3333; }
-        .subscribe-panel .sub-label { color: #fff; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; word-break: break-word; line-height: 1.3; }
-        .subscribe-panel .sub-label span { color: #ff4444; }
-        .subscribe-panel .sub-btn { display: inline-block; padding: 12px 16px; background: linear-gradient(135deg, #ff0000, #cc0000); color: #fff; font-weight: 900; font-size: 0.85rem; border: none; border-radius: 12px; cursor: pointer; text-decoration: none; transition: all 0.3s ease; font-family: 'Cairo', sans-serif; box-shadow: 0 0 20px rgba(255, 0, 0, 0.3); animation: subPulse 1.8s ease-in-out infinite; width: 100%; word-break: break-word; line-height: 1.2; }
-        @keyframes subPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 0, 0, 0.3), 0 0 40px rgba(255, 0, 0, 0.1); } 50% { transform: scale(1.06); box-shadow: 0 0 35px rgba(255, 0, 0, 0.6), 0 0 70px rgba(255, 0, 0, 0.25); } }
-        .subscribe-panel .sub-btn:hover { transform: scale(1.1) translateX(-4px); box-shadow: 0 0 50px rgba(255, 0, 0, 0.7), 0 0 100px rgba(255, 0, 0, 0.3); }
-        .subscribe-panel .sub-btn .icon { display: block; font-size: 1.6rem; margin-bottom: 4px; }
-        @media (max-width: 700px) { .counters-bar { flex-direction: row; gap: 8px; bottom: 12px; padding: 0 10px; } .counter-box { min-width: 100px; padding: 10px 14px; } .counter-box .number { font-size: 1.3rem; } .title { font-size: 2.4rem; margin-bottom: 30px; } .claim-btn { font-size: 1.3rem; padding: 18px 30px; } .container { padding: 10px; padding-bottom: 120px; } .admin-panel { width: 92%; right: 4%; bottom: 130px; max-height: 450px; padding: 18px; } .admin-panel-wrap { bottom: 80px; right: 10px; } .admin-toggle { padding: 8px 14px; font-size: 0.8rem; } .subscribe-panel { max-width: 100px; padding: 14px 10px; } .subscribe-panel .sub-label { font-size: 0.6rem; } .subscribe-panel .sub-btn { font-size: 0.7rem; padding: 10px 10px; } .subscribe-panel .sub-btn .icon { font-size: 1.2rem; } .lang-toggle-wrap { top: 10px; right: 10px; padding: 4px 8px; } .lang-btn { font-size: 0.7rem; padding: 4px 10px; } .password-modal { padding: 30px 20px; } .password-modal h2 { font-size: 1.2rem; } .status-msg { font-size: 0.95rem; } .toast-container { bottom: 80px; } }
-        @media (max-width: 450px) { .title { font-size: 1.8rem; } .claim-btn { font-size: 1rem; padding: 14px 20px; } .counter-box { min-width: 70px; padding: 8px 10px; } .counter-box .number { font-size: 1.1rem; } .counter-box .label { font-size: 0.6rem; } .account-display { padding: 20px; } .admin-panel { padding: 14px; max-height: 380px; } .subscribe-panel { max-width: 80px; padding: 10px 8px; } .subscribe-panel .sub-label { font-size: 0.5rem; } .subscribe-panel .sub-btn { font-size: 0.6rem; padding: 8px 6px; } .subscribe-panel .sub-btn .icon { font-size: 1rem; } .status-msg { font-size: 0.85rem; } }
-        .admin-panel::-webkit-scrollbar { width: 4px; }
-        .admin-panel::-webkit-scrollbar-track { background: #111; }
-        .admin-panel::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
-        .log-table-wrap::-webkit-scrollbar { width: 4px; }
-        .log-table-wrap::-webkit-scrollbar-track { background: #111; }
-        .log-table-wrap::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding-bottom: 160px;
+            transition: all 0.3s ease;
+        }
+
+        .maintenance-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(6px);
+        }
+        .maintenance-overlay.active {
+            display: flex;
+        }
+        .maintenance-box {
+            background: #1a1a1a;
+            border: 2px solid #ff4444;
+            border-radius: 20px;
+            padding: 40px 50px;
+            max-width: 500px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 0 60px rgba(255,68,68,0.3);
+        }
+        .maintenance-box h2 {
+            color: #ff4444;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .maintenance-box p {
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9997;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 500px;
+        }
+        .toast {
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #00ff00;
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: #fff;
+            font-size: 0.95rem;
+            box-shadow: 0 0 30px rgba(0,255,0,0.15);
+            animation: toastIn 0.5s ease, toastOut 0.5s 4.5s ease forwards;
+            width: 100%;
+            text-align: center;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+        }
+        .toast span {
+            color: #00ff00;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .lang-toggle-wrap {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 6px 10px;
+            border-radius: 30px;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .lang-btn:hover {
+            color: #fff;
+        }
+
+        .lang-btn.active {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+
+        .glow-center {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 255, 0, 0.12) 0%, rgba(0, 255, 0, 0.04) 30%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ff00;
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: floatParticle 12s infinite;
+        }
+        @keyframes floatParticle {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 20px;
+            padding-bottom: 40px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .title {
+            font-size: 3.8rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3), 0 0 80px rgba(0, 255, 0, 0.1);
+            margin-bottom: 50px;
+            animation: floatTitle 3s ease-in-out infinite;
+            letter-spacing: 2px;
+            word-break: break-word;
+        }
+
+        @keyframes floatTitle {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+
+        .claim-btn {
+            background: linear-gradient(135deg, #00d924 0%, #00ff00 50%, #00d924 100%);
+            color: #000;
+            font-size: 2rem;
+            font-weight: 900;
+            padding: 25px 60px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2), inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: pulseBtn 2s ease-in-out infinite;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            animation: none;
+            transform: scale(0.98);
+            background: linear-gradient(135deg, #444 0%, #666 50%, #444 100%);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+        }
+
+        @keyframes pulseBtn {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2);
+            }
+            50% {
+                transform: scale(1.04);
+                box-shadow: 0 0 50px rgba(0, 255, 0, 0.6), 0 0 100px rgba(0, 255, 0, 0.3);
+            }
+        }
+
+        .claim-btn:hover:not(:disabled) {
+            transform: scale(1.08) translateY(-4px);
+            box-shadow: 0 0 60px rgba(0, 255, 0, 0.8), 0 0 120px rgba(0, 255, 0, 0.4);
+        }
+
+        .claim-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+        .claim-btn:disabled::before {
+            animation: none;
+            opacity: 0;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .account-display {
+            display: none;
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #00ff00;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+        .account-display.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .account-info {
+            color: #00ff00;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .account-info label {
+            color: #888;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .account-info .value {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #00d924, #00ff00);
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            font-family: 'Cairo', sans-serif;
+        }
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.5);
+        }
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #444, #666);
+            color: #fff;
+        }
+
+        .empty-msg {
+            color: #ff4444;
+            font-size: 1.2rem;
+            margin-top: 25px;
+            display: none;
+            font-weight: 700;
+        }
+        .empty-msg.active {
+            display: block;
+        }
+
+        .status-msg {
+            color: #ffaa00;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            font-weight: 700;
+            min-height: 32px;
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+        }
+        .status-msg.active {
+            display: block;
+        }
+        .status-msg.vpn {
+            color: #ff4444;
+        }
+        .status-msg.cooldown {
+            color: #ffaa00;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .counters-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            gap: 15px;
+            animation: fadeInUp 1s ease-out;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .counter-box {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid;
+            border-radius: 15px;
+            padding: 14px 24px;
+            text-align: center;
+            min-width: 150px;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        .counter-box .label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .counter-box .number {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .counter-box.available {
+            border-color: #00ff00;
+            color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.25);
+        }
+        .counter-box.claimed {
+            border-color: #00aaff;
+            color: #00aaff;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.25);
+        }
+        .counter-box.total {
+            border-color: #ffaa00;
+            color: #ffaa00;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.25);
+        }
+        .counter-box.available.warning {
+            border-color: #ffaa00;
+            color: #ffaa00;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+        }
+        .counter-box.available.empty {
+            border-color: #ff4444;
+            color: #ff4444;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .admin-panel-wrap {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .admin-toggle {
+            background: rgba(255, 255, 255, 0.08);
+            color: #888;
+            border: 1px solid #333;
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+        }
+        .admin-toggle:hover {
+            color: #00ff00;
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
+        }
+
+        .admin-panel {
+            display: none;
+            position: fixed;
+            bottom: 140px;
+            right: 20px;
+            width: 480px;
+            max-height: 70vh;
+            background: rgba(10, 10, 10, 0.97);
+            border: 2px solid #00ff00;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.15);
+            overflow-y: auto;
+            z-index: 101;
+            backdrop-filter: blur(8px);
+        }
+        .admin-panel.active {
+            display: block;
+        }
+        .admin-panel h3 {
+            color: #00ff00;
+            margin-bottom: 18px;
+            font-size: 1.3rem;
+            font-weight: 900;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .admin-panel textarea {
+            width: 100%;
+            height: 120px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #00ff00;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border 0.3s ease;
+        }
+        .admin-panel textarea:focus {
+            border-color: #00ff00;
+        }
+        .admin-panel .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .admin-btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            flex: 1;
+            min-width: 100px;
+        }
+        .admin-btn:hover:not(:disabled) {
+            transform: scale(1.04);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        .admin-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .admin-btn.danger {
+            background: #ff4444;
+            color: #fff;
+        }
+        .admin-btn.danger:hover:not(:disabled) {
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+        }
+        .admin-btn.warning {
+            background: #ffaa00;
+            color: #000;
+        }
+        .admin-btn.warning:hover:not(:disabled) {
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+        }
+        .admin-btn.info {
+            background: #00aaff;
+            color: #000;
+        }
+        .admin-btn.info:hover:not(:disabled) {
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+        }
+        .admin-panel .stats {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            border-top: 1px solid #222;
+            padding-top: 12px;
+        }
+
+        .admin-panel .settings-group {
+            background: #111;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            border: 1px solid #2a2a2a;
+        }
+        .admin-panel .settings-group label {
+            color: #aaa;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+        .admin-panel .settings-group input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .admin-panel .settings-group input:focus {
+            border-color: #00ff00;
+        }
+        .admin-panel .settings-group .btn-row {
+            margin-top: 12px;
+        }
+
+        .log-table-wrap {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+        .log-table th {
+            background: #111;
+            color: #00ff00;
+            padding: 8px 6px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .log-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #222;
+            word-break: break-word;
+        }
+        .log-table tr:hover td {
+            background: #1a1a1a;
+        }
+
+        .maintenance-indicator {
+            display: inline-block;
+            background: #ff4444;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-left: 10px;
+        }
+
+        .password-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-overlay.active {
+            display: flex;
+        }
+
+        .password-modal {
+            background: rgba(10, 10, 10, 0.96);
+            border: 2px solid #00ff00;
+            border-radius: 20px;
+            padding: 40px 36px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 60px rgba(0, 255, 0, 0.2);
+            text-align: center;
+            animation: modalPop 0.3s ease-out;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .password-modal h2 {
+            color: #00ff00;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+        .password-modal input[type="password"] {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            text-align: center;
+            letter-spacing: 4px;
+        }
+        .password-modal input[type="password"]:focus {
+            border-color: #00ff00;
+        }
+        .password-modal .pw-btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .password-modal .pw-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+        .password-modal .pw-btn.confirm {
+            background: #00ff00;
+            color: #000;
+        }
+        .password-modal .pw-btn.confirm:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
+            transform: scale(1.04);
+        }
+        .password-modal .pw-btn.cancel {
+            background: #333;
+            color: #aaa;
+        }
+        .password-modal .pw-btn.cancel:hover {
+            background: #444;
+            color: #fff;
+        }
+        .password-modal .pw-error {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin-top: 14px;
+            min-height: 24px;
+            font-weight: 700;
+        }
+
+        .subscribe-panel {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #ff0000;
+            border-right: none;
+            border-radius: 16px 0 0 16px;
+            padding: 20px 16px;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.2);
+            max-width: 140px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(6px);
+        }
+        .subscribe-panel:hover {
+            box-shadow: 0 0 60px rgba(255, 0, 0, 0.35);
+            border-color: #ff3333;
+        }
+        .subscribe-panel .sub-label {
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+        .subscribe-panel .sub-label span {
+            color: #ff4444;
+        }
+        .subscribe-panel .sub-btn {
+            display: inline-block;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            animation: subPulse 1.8s ease-in-out infinite;
+            width: 100%;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+        @keyframes subPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.3), 0 0 40px rgba(255, 0, 0, 0.1);
+            }
+            50% {
+                transform: scale(1.06);
+                box-shadow: 0 0 35px rgba(255, 0, 0, 0.6), 0 0 70px rgba(255, 0, 0, 0.25);
+            }
+        }
+        .subscribe-panel .sub-btn:hover {
+            transform: scale(1.1) translateX(-4px);
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.7), 0 0 100px rgba(255, 0, 0, 0.3);
+        }
+        .subscribe-panel .sub-btn .icon {
+            display: block;
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 700px) {
+            .counters-bar {
+                flex-direction: row;
+                gap: 8px;
+                bottom: 12px;
+                padding: 0 10px;
+            }
+            .counter-box {
+                min-width: 100px;
+                padding: 10px 14px;
+            }
+            .counter-box .number {
+                font-size: 1.3rem;
+            }
+            .title {
+                font-size: 2.4rem;
+                margin-bottom: 30px;
+            }
+            .claim-btn {
+                font-size: 1.3rem;
+                padding: 18px 30px;
+            }
+            .container {
+                padding: 10px;
+                padding-bottom: 120px;
+            }
+            .admin-panel {
+                width: 92%;
+                right: 4%;
+                bottom: 130px;
+                max-height: 450px;
+                padding: 18px;
+            }
+            .admin-panel-wrap {
+                bottom: 80px;
+                right: 10px;
+            }
+            .admin-toggle {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+            .subscribe-panel {
+                max-width: 100px;
+                padding: 14px 10px;
+            }
+            .subscribe-panel .sub-label {
+                font-size: 0.6rem;
+            }
+            .subscribe-panel .sub-btn {
+                font-size: 0.7rem;
+                padding: 10px 10px;
+            }
+            .subscribe-panel .sub-btn .icon {
+                font-size: 1.2rem;
+            }
+            .lang-toggle-wrap {
+                top: 10px;
+                right: 10px;
+                padding: 4px 8px;
+            }
+            .lang-btn {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+            .password-modal {
+                padding: 30px 20px;
+            }
+            .password-modal h2 {
+                font-size: 1.2rem;
+            }
+            .status-msg {
+                font-size: 0.95rem;
+            }
+            .toast-container {
+                bottom: 80px;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            .claim-btn {
+                font-size: 1rem;
+                padding: 14px 20px;
+            }
+            .counter-box {
+                min-width: 70px;
+                padding: 8px 10px;
+            }
+            .counter-box .number {
+                font-size: 1.1rem;
+            }
+            .counter-box .label {
+                font-size: 0.6rem;
+            }
+            .account-display {
+                padding: 20px;
+            }
+            .admin-panel {
+                padding: 14px;
+                max-height: 380px;
+            }
+            .subscribe-panel {
+                max-width: 80px;
+                padding: 10px 8px;
+            }
+            .subscribe-panel .sub-label {
+                font-size: 0.5rem;
+            }
+            .subscribe-panel .sub-btn {
+                font-size: 0.6rem;
+                padding: 8px 6px;
+            }
+            .subscribe-panel .sub-btn .icon {
+                font-size: 1rem;
+            }
+            .status-msg {
+                font-size: 0.85rem;
+            }
+        }
+
+        .admin-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .admin-panel::-webkit-scrollbar-track {
+            background: #111;
+        }
+        .admin-panel::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
+        .log-table-wrap::-webkit-scrollbar {
+            width: 4px;
+        }
+        .log-table-wrap::-webkit-scrollbar-track {
+            background: #111;
+        }
+        .log-table-wrap::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -211,8 +1053,10 @@
             <input type="text" id="githubOwner" placeholder="e.g. your-username" value="">
             <label>Repository Name</label>
             <input type="text" id="githubRepo" placeholder="e.g. your-repo" value="">
-            <label>File Path (accounts)</label>
+            <label>Accounts File Path</label>
             <input type="text" id="githubPath" placeholder="e.g. mcfa.txt" value="mcfa.txt">
+            <label>Stats File Path</label>
+            <input type="text" id="statsPath" placeholder="e.g. informasins.txt" value="informasins.txt">
             <label>Personal Access Token (classic, with repo scope)</label>
             <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" value="">
             <div class="btn-row">
@@ -320,8 +1164,10 @@
                 noTokenWarning: '⚠️ GitHub token not set. Admin actions (Add/Clear) are disabled.',
                 maintLoadError: '❌ Failed to load maintenance state from GitHub. Using local state.',
                 maintLoadSuccess: '✅ Maintenance state loaded from GitHub.',
-                infoSyncSuccess: '✅ Informations synced to GitHub.',
-                infoSyncError: '❌ Failed to sync informations to GitHub.',
+                statsLoadSuccess: '✅ Stats loaded from GitHub.',
+                statsLoadError: '❌ Failed to load stats from GitHub.',
+                statsSaveSuccess: '✅ Stats saved to GitHub.',
+                statsSaveError: '❌ Failed to save stats to GitHub.',
             },
             ar: {
                 mainTitle: 'حسابات MCFA ⚡',
@@ -381,8 +1227,10 @@
                 noTokenWarning: '⚠️ رمز GitHub غير موجود. إجراءات المشرف (إضافة/مسح) معطلة.',
                 maintLoadError: '❌ فشل تحميل حالة الصيانة من GitHub. سيتم استخدام الحالة المحلية.',
                 maintLoadSuccess: '✅ تم تحميل حالة الصيانة من GitHub.',
-                infoSyncSuccess: '✅ تم مزامنة المعلومات مع GitHub.',
-                infoSyncError: '❌ فشلت مزامنة المعلومات مع GitHub.',
+                statsLoadSuccess: '✅ تم تحميل الإحصائيات من GitHub.',
+                statsLoadError: '❌ فشل تحميل الإحصائيات من GitHub.',
+                statsSaveSuccess: '✅ تم حفظ الإحصائيات في GitHub.',
+                statsSaveError: '❌ فشل حفظ الإحصائيات في GitHub.',
             }
         };
 
@@ -390,8 +1238,10 @@
 
         function setLang(lang) {
             currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-            const t = LANG[lang];
+            document.querySelectorAll('.lang-btn').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.lang === lang);
+            });
+            var t = LANG[lang];
             document.getElementById('mainTitle').textContent = t.mainTitle;
             document.getElementById('claimBtn').textContent = t.claimBtn;
             document.getElementById('emailLabel').textContent = t.emailLabel;
@@ -422,12 +1272,14 @@
             updateStats();
             updateLogTable();
 
-            const copyBtn = document.getElementById('copyBtn');
-            if (copyBtn.classList.contains('copied')) copyBtn.textContent = t.copyCopied;
+            var copyBtn = document.getElementById('copyBtn');
+            if (copyBtn.classList.contains('copied')) {
+                copyBtn.textContent = t.copyCopied;
+            }
 
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-            const subPanel = document.getElementById('subscribePanel');
+            var subPanel = document.getElementById('subscribePanel');
             if (lang === 'ar') {
                 subPanel.style.right = 'auto';
                 subPanel.style.left = '0';
@@ -442,8 +1294,8 @@
                 subPanel.style.borderLeft = '2px solid #ff0000';
             }
 
-            const adminPanel = document.getElementById('adminPanel');
-            const adminWrap = document.querySelector('.admin-panel-wrap');
+            var adminPanel = document.getElementById('adminPanel');
+            var adminWrap = document.querySelector('.admin-panel-wrap');
             if (lang === 'ar') {
                 adminPanel.style.right = 'auto';
                 adminPanel.style.left = '20px';
@@ -456,10 +1308,12 @@
                 adminWrap.style.left = 'auto';
             }
 
-            const msgEl = document.getElementById('statusMsg');
+            var msgEl = document.getElementById('statusMsg');
             if (msgEl.classList.contains('active')) {
-                const type = msgEl.dataset.type;
-                if (type === 'vpn') msgEl.textContent = t.vpnDetected;
+                var type = msgEl.dataset.type;
+                if (type === 'vpn') {
+                    msgEl.textContent = t.vpnDetected;
+                }
             }
             updateMaintUI();
         }
@@ -467,24 +1321,26 @@
         // ===========================
         //  STORAGE & STATE
         // ===========================
-        let accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
-        let claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
-        const COOLDOWN_MINUTES = 10;
-        const COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
-        let visitorCount = parseInt(localStorage.getItem('mfa_visitors')) || 0;
-        let logs = JSON.parse(localStorage.getItem('mfa_logs')) || [];
-        let maintenanceMode = localStorage.getItem('mfa_maintenance') === 'true';
+        var accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
+        var claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
+        var COOLDOWN_MINUTES = 10;
+        var COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
+        var visitorCount = parseInt(localStorage.getItem('mfa_visitors')) || 0;
+        var logs = JSON.parse(localStorage.getItem('mfa_logs')) || [];
+        var maintenanceMode = localStorage.getItem('mfa_maintenance') === 'true';
+
+        // Global stats (total visitors & total claimed ever)
+        var totalVisitors = parseInt(localStorage.getItem('mfa_total_visitors')) || 0;
+        var totalClaimedEver = parseInt(localStorage.getItem('mfa_total_claimed_ever')) || 0;
 
         // GitHub settings
-        let githubSettings = JSON.parse(localStorage.getItem('mfa_github_settings')) || {
+        var githubSettings = JSON.parse(localStorage.getItem('mfa_github_settings')) || {
             owner: '',
             repo: '',
             path: 'mcfa.txt',
+            statsPath: 'informasins.txt',
             token: ''
         };
-
-        // Informations file
-        const INFO_FILE = 'informasins.txt';
 
         function saveGitHubSettings() {
             localStorage.setItem('mfa_github_settings', JSON.stringify(githubSettings));
@@ -494,6 +1350,7 @@
             document.getElementById('githubOwner').value = githubSettings.owner || '';
             document.getElementById('githubRepo').value = githubSettings.repo || '';
             document.getElementById('githubPath').value = githubSettings.path || 'mcfa.txt';
+            document.getElementById('statsPath').value = githubSettings.statsPath || 'informasins.txt';
             document.getElementById('githubToken').value = githubSettings.token || '';
             updateAdminButtons();
         }
@@ -502,13 +1359,14 @@
             githubSettings.owner = document.getElementById('githubOwner').value.trim();
             githubSettings.repo = document.getElementById('githubRepo').value.trim();
             githubSettings.path = document.getElementById('githubPath').value.trim() || 'mcfa.txt';
+            githubSettings.statsPath = document.getElementById('statsPath').value.trim() || 'informasins.txt';
             githubSettings.token = document.getElementById('githubToken').value.trim();
             saveGitHubSettings();
             updateAdminButtons();
         }
 
         function clearGitHubSettings() {
-            githubSettings = { owner: '', repo: '', path: 'mcfa.txt', token: '' };
+            githubSettings = { owner: '', repo: '', path: 'mcfa.txt', statsPath: 'informasins.txt', token: '' };
             saveGitHubSettings();
             loadSettingsToUI();
             document.getElementById('githubStatus').textContent = LANG[currentLang].githubClear;
@@ -527,28 +1385,28 @@
         }
 
         function getFileSHA(owner, repo, path, token) {
-            return fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+            return fetch('https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
                 headers: {
                     'Authorization': 'token ' + token,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             })
-            .then(res => {
+            .then(function(res) {
                 if (!res.ok) {
                     if (res.status === 404) return null;
                     throw new Error('HTTP ' + res.status);
                 }
-                return res.json().then(data => data.sha);
+                return res.json().then(function(data) { return data.sha; });
             });
         }
 
         function updateFileContent(owner, repo, path, token, content, sha, message) {
-            const payload = {
+            var payload = {
                 message: message || 'Update file via MCFA site',
                 content: btoa(unescape(encodeURIComponent(content))),
                 sha: sha
             };
-            return fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+            return fetch('https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
                 method: 'PUT',
                 headers: {
                     'Authorization': 'token ' + token,
@@ -557,23 +1415,132 @@
                 },
                 body: JSON.stringify(payload)
             })
-            .then(res => {
+            .then(function(res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
             });
         }
 
         // ===========================
-        //  MAINTENANCE SYNC WITH GITHUB
+        //  STATS MANAGEMENT (visitors & claimed)
         // ===========================
-        const MAINTENANCE_FILE = 'maintenance.txt';
+        var STATS_FILE = 'informasins.txt';
 
-        function loadMaintenanceFromGitHub() {
-            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) return Promise.resolve();
-            return fetch(`https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(MAINTENANCE_FILE)}`, {
+        function loadStatsFromGitHub() {
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                // no token, try public? but we need token to write, so skip
+                return Promise.resolve();
+            }
+            var path = githubSettings.statsPath || STATS_FILE;
+            return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
                 headers: getGitHubHeaders()
             })
-            .then(res => {
+            .then(function(res) {
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        // file doesn't exist => default zeros
+                        totalVisitors = 0;
+                        totalClaimedEver = 0;
+                        localStorage.setItem('mfa_total_visitors', '0');
+                        localStorage.setItem('mfa_total_claimed_ever', '0');
+                        updateStatsUI();
+                        return;
+                    }
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data) return;
+                var content = atob(data.content);
+                var lines = content.split('\n');
+                var v = 0, c = 0;
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (line.startsWith('visitors:')) {
+                        v = parseInt(line.split(':')[1].trim()) || 0;
+                    } else if (line.startsWith('claimed:')) {
+                        c = parseInt(line.split(':')[1].trim()) || 0;
+                    }
+                }
+                totalVisitors = v;
+                totalClaimedEver = c;
+                localStorage.setItem('mfa_total_visitors', totalVisitors.toString());
+                localStorage.setItem('mfa_total_claimed_ever', totalClaimedEver.toString());
+                updateStatsUI();
+                document.getElementById('githubStatus').textContent = LANG[currentLang].statsLoadSuccess;
+                document.getElementById('githubStatus').style.color = '#00ff00';
+                logActivity('Stats loaded from GitHub: visitors=' + totalVisitors + ', claimed=' + totalClaimedEver);
+            })
+            .catch(function(err) {
+                console.warn('Failed to load stats from GitHub:', err);
+                document.getElementById('githubStatus').textContent = LANG[currentLang].statsLoadError;
+                document.getElementById('githubStatus').style.color = '#ff4444';
+                // keep local values
+            });
+        }
+
+        function saveStatsToGitHub() {
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                return Promise.resolve();
+            }
+            var content = 'visitors: ' + totalVisitors + '\nclaimed: ' + totalClaimedEver;
+            var path = githubSettings.statsPath || STATS_FILE;
+            return getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
+            .then(function(sha) {
+                if (sha === null) {
+                    var payload = {
+                        message: 'Create stats file via MCFA site',
+                        content: btoa(unescape(encodeURIComponent(content)))
+                    };
+                    return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'token ' + githubSettings.token,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update stats via MCFA site');
+                }
+            })
+            .then(function(res) {
+                if (res && !res.ok) throw new Error('HTTP ' + res.status);
+                if (res) return res.json();
+            })
+            .then(function() {
+                document.getElementById('githubStatus').textContent = LANG[currentLang].statsSaveSuccess;
+                document.getElementById('githubStatus').style.color = '#00ff00';
+                logActivity('Stats saved to GitHub: visitors=' + totalVisitors + ', claimed=' + totalClaimedEver);
+            })
+            .catch(function(err) {
+                console.warn('Failed to save stats to GitHub:', err);
+                document.getElementById('githubStatus').textContent = LANG[currentLang].statsSaveError + ' (' + err.message + ')';
+                document.getElementById('githubStatus').style.color = '#ff4444';
+            });
+        }
+
+        function updateStatsUI() {
+            // Update visitor counter in UI
+            document.getElementById('visitorCount').textContent = totalVisitors;
+            // claimed count is already updated via claimedCountDisplay
+        }
+
+        // ===========================
+        //  MAINTENANCE SYNC WITH GITHUB
+        // ===========================
+        var MAINTENANCE_FILE = 'maintenance.txt';
+
+        function loadMaintenanceFromGitHub() {
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                return Promise.resolve();
+            }
+            return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(MAINTENANCE_FILE), {
+                headers: getGitHubHeaders()
+            })
+            .then(function(res) {
                 if (!res.ok) {
                     if (res.status === 404) {
                         maintenanceMode = false;
@@ -585,9 +1552,9 @@
                 }
                 return res.json();
             })
-            .then(data => {
+            .then(function(data) {
                 if (!data) return;
-                const content = atob(data.content).trim();
+                var content = atob(data.content).trim();
                 maintenanceMode = (content.toLowerCase() === 'true');
                 localStorage.setItem('mfa_maintenance', maintenanceMode.toString());
                 updateMaintUI();
@@ -595,7 +1562,7 @@
                 document.getElementById('githubStatus').textContent = LANG[currentLang].maintLoadSuccess + ' (' + maintenanceMode + ')';
                 document.getElementById('githubStatus').style.color = '#00ff00';
             })
-            .catch(err => {
+            .catch(function(err) {
                 console.warn('Failed to load maintenance from GitHub:', err);
                 document.getElementById('githubStatus').textContent = LANG[currentLang].maintLoadError;
                 document.getElementById('githubStatus').style.color = '#ff4444';
@@ -603,17 +1570,19 @@
         }
 
         function saveMaintenanceToGitHub() {
-            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) return Promise.resolve();
-            const content = maintenanceMode ? 'true' : 'false';
-            const path = MAINTENANCE_FILE;
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                return Promise.resolve();
+            }
+            var content = maintenanceMode ? 'true' : 'false';
+            var path = MAINTENANCE_FILE;
             return getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
-            .then(sha => {
+            .then(function(sha) {
                 if (sha === null) {
-                    const payload = {
+                    var payload = {
                         message: 'Set maintenance state via MCFA site',
                         content: btoa(unescape(encodeURIComponent(content)))
                     };
-                    return fetch(`https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(path)}`, {
+                    return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
                         method: 'PUT',
                         headers: {
                             'Authorization': 'token ' + githubSettings.token,
@@ -626,16 +1595,16 @@
                     return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update maintenance state via MCFA site');
                 }
             })
-            .then(res => {
+            .then(function(res) {
                 if (res && !res.ok) throw new Error('HTTP ' + res.status);
                 if (res) return res.json();
             })
-            .then(() => {
+            .then(function() {
                 document.getElementById('githubStatus').textContent = LANG[currentLang].maintSyncSuccess;
                 document.getElementById('githubStatus').style.color = '#00ff00';
                 logActivity('Maintenance state synced to GitHub: ' + maintenanceMode);
             })
-            .catch(err => {
+            .catch(function(err) {
                 console.warn('Failed to save maintenance to GitHub:', err);
                 document.getElementById('githubStatus').textContent = LANG[currentLang].maintSyncError + ' (' + err.message + ')';
                 document.getElementById('githubStatus').style.color = '#ff4444';
@@ -644,102 +1613,12 @@
         }
 
         // ===========================
-        //  INFORMATIONS SYNC (visitors + claimed count)
-        // ===========================
-        function loadInformationsFromGitHub() {
-            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) return Promise.resolve();
-            return fetch(`https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(INFO_FILE)}`, {
-                headers: getGitHubHeaders()
-            })
-            .then(res => {
-                if (!res.ok) {
-                    if (res.status === 404) {
-                        // file doesn't exist, create with default
-                        return saveInformationsToGitHub();
-                    }
-                    throw new Error('HTTP ' + res.status);
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (!data) return;
-                const content = atob(data.content).trim();
-                const lines = content.split('\n').filter(line => line.trim() !== '');
-                let loadedVisitors = 0;
-                let loadedClaimed = 0;
-                for (const line of lines) {
-                    if (line.startsWith('visitors=')) {
-                        const val = parseInt(line.split('=')[1].trim());
-                        if (!isNaN(val)) loadedVisitors = val;
-                    } else if (line.startsWith('claimed=')) {
-                        const val = parseInt(line.split('=')[1].trim());
-                        if (!isNaN(val)) loadedClaimed = val;
-                    }
-                }
-                // We keep the max between local and remote to avoid losing data
-                if (loadedVisitors > visitorCount) visitorCount = loadedVisitors;
-                if (loadedClaimed > claimedCount) claimedCount = loadedClaimed;
-                localStorage.setItem('mfa_visitors', visitorCount.toString());
-                localStorage.setItem('mfa_claimed', claimedCount.toString());
-                // Save back to GitHub with updated values
-                saveInformationsToGitHub();
-                updateStats();
-                logActivity('Informations loaded from GitHub: visitors=' + visitorCount + ', claimed=' + claimedCount);
-            })
-            .catch(err => {
-                console.warn('Failed to load informations from GitHub:', err);
-                // ignore, use local
-            });
-        }
-
-        function saveInformationsToGitHub() {
-            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) return Promise.resolve();
-            const content = `visitors=${visitorCount}\nclaimed=${claimedCount}`;
-            const path = INFO_FILE;
-            return getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
-            .then(sha => {
-                if (sha === null) {
-                    const payload = {
-                        message: 'Create informations file via MCFA site',
-                        content: btoa(unescape(encodeURIComponent(content)))
-                    };
-                    return fetch(`https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(path)}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': 'token ' + githubSettings.token,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                } else {
-                    return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update informations via MCFA site');
-                }
-            })
-            .then(res => {
-                if (res && !res.ok) throw new Error('HTTP ' + res.status);
-                if (res) return res.json();
-            })
-            .then(() => {
-                document.getElementById('githubStatus').textContent = LANG[currentLang].infoSyncSuccess;
-                document.getElementById('githubStatus').style.color = '#00ff00';
-                logActivity('Informations synced to GitHub: visitors=' + visitorCount + ', claimed=' + claimedCount);
-            })
-            .catch(err => {
-                console.warn('Failed to save informations to GitHub:', err);
-                document.getElementById('githubStatus').textContent = LANG[currentLang].infoSyncError + ' (' + err.message + ')';
-                document.getElementById('githubStatus').style.color = '#ff4444';
-                logActivity('Failed to sync informations to GitHub: ' + err.message);
-            });
-        }
-
-        // ===========================
         //  LOAD ACCOUNTS FROM GITHUB
         // ===========================
         function loadFromGitHub() {
             saveSettingsFromUI();
-            const t = LANG[currentLang];
-            const statusEl = document.getElementById('githubStatus');
+            var t = LANG[currentLang];
+            var statusEl = document.getElementById('githubStatus');
             statusEl.textContent = '⏳ Loading...';
             statusEl.style.color = '#ffaa00';
 
@@ -749,11 +1628,13 @@
                 return;
             }
 
-            const path = githubSettings.path || 'mcfa.txt';
-            const url = `https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(path)}`;
+            var path = githubSettings.path || 'mcfa.txt';
+            var url = 'https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path);
 
-            fetch(url, { headers: getGitHubHeaders() })
-            .then(res => {
+            fetch(url, {
+                headers: getGitHubHeaders()
+            })
+            .then(function(res) {
                 if (!res.ok) {
                     if (res.status === 404) {
                         statusEl.textContent = '📭 File not found, starting empty.';
@@ -768,22 +1649,22 @@
                 }
                 return res.json();
             })
-            .then(data => {
+            .then(function(data) {
                 if (!data) return;
-                const content = atob(data.content);
-                const lines = content.split('\n').filter(line => line.trim() !== '');
-                const newAccounts = [];
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    let parts;
-                    if (trimmed.indexOf(':') !== -1) parts = trimmed.split(':');
-                    else if (trimmed.indexOf('|') !== -1) parts = trimmed.split('|');
+                var content = atob(data.content);
+                var lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
+                var newAccounts = [];
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    var parts;
+                    if (line.indexOf(':') !== -1) parts = line.split(':');
+                    else if (line.indexOf('|') !== -1) parts = line.split('|');
                     else continue;
                     if (parts.length >= 2) {
-                        const email = parts[0].trim();
-                        const pass = parts.slice(1).join(':').trim();
+                        var email = parts[0].trim();
+                        var pass = parts.slice(1).join(':').trim();
                         if (email && pass) {
-                            newAccounts.push({ email, password: pass, claimed: false });
+                            newAccounts.push({ email: email, password: pass, claimed: false });
                         }
                     }
                 }
@@ -792,11 +1673,11 @@
                 saveAccounts();
                 statusEl.textContent = t.githubLoadSuccess + ' (' + accounts.length + ' accounts)';
                 statusEl.style.color = '#00ff00';
-                document.getElementById('bulkInput').value = accounts.map(a => a.email + ':' + a.password).join('\n');
+                document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 updateStats();
                 logActivity('Loaded accounts from GitHub (' + accounts.length + ')');
             })
-            .catch(err => {
+            .catch(function(err) {
                 statusEl.textContent = t.githubLoadError + ' (' + err.message + ')';
                 statusEl.style.color = '#ff4444';
                 console.error(err);
@@ -808,8 +1689,8 @@
         // ===========================
         function saveToGitHub() {
             saveSettingsFromUI();
-            const t = LANG[currentLang];
-            const statusEl = document.getElementById('githubStatus');
+            var t = LANG[currentLang];
+            var statusEl = document.getElementById('githubStatus');
             statusEl.textContent = '⏳ Saving...';
             statusEl.style.color = '#ffaa00';
 
@@ -819,17 +1700,17 @@
                 return;
             }
 
-            const content = accounts.map(a => a.email + ':' + a.password).join('\n');
-            const path = githubSettings.path || 'mcfa.txt';
+            var content = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
+            var path = githubSettings.path || 'mcfa.txt';
 
             getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
-            .then(sha => {
+            .then(function(sha) {
                 if (sha === null) {
-                    const payload = {
+                    var payload = {
                         message: 'Create mcfa.txt via MCFA site',
                         content: btoa(unescape(encodeURIComponent(content)))
                     };
-                    return fetch(`https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(path)}`, {
+                    return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
                         method: 'PUT',
                         headers: {
                             'Authorization': 'token ' + githubSettings.token,
@@ -842,19 +1723,19 @@
                     return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update mcfa.txt via MCFA site');
                 }
             })
-            .then(res => {
+            .then(function(res) {
                 if (!res || !res.ok) {
                     if (res) throw new Error('HTTP ' + res.status);
                     return;
                 }
                 return res.json();
             })
-            .then(() => {
+            .then(function() {
                 statusEl.textContent = t.githubSaveSuccess;
                 statusEl.style.color = '#00ff00';
                 logActivity('Saved accounts to GitHub (' + accounts.length + ')');
             })
-            .catch(err => {
+            .catch(function(err) {
                 statusEl.textContent = t.githubSaveError + ' (' + err.message + ')';
                 statusEl.style.color = '#ff4444';
                 console.error(err);
@@ -869,31 +1750,27 @@
             localStorage.setItem('mfa_claimed', claimedCount.toString());
             updateStats();
             if (document.getElementById('adminPanel').classList.contains('active')) {
-                document.getElementById('bulkInput').value = accounts.map(a => a.email + ':' + a.password).join('\n');
-            }
-            // Sync informations after any change
-            if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
-                saveInformationsToGitHub();
+                document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
             }
         }
 
         function updateStats() {
-            const total = accounts.length;
-            const available = accounts.filter(a => !a.claimed).length;
+            var total = accounts.length;
+            var available = accounts.filter(function(a) { return !a.claimed; }).length;
             document.getElementById('availableCount').textContent = available;
             document.getElementById('claimedCountDisplay').textContent = claimedCount;
             document.getElementById('totalCount').textContent = total;
-            document.getElementById('visitorCount').textContent = visitorCount;
+            // visitor count is displayed from totalVisitors
 
-            const t = LANG[currentLang];
+            var t = LANG[currentLang];
             document.getElementById('stats').textContent = t.stats(total, claimedCount);
 
-            const box = document.getElementById('availableBox');
+            var box = document.getElementById('availableBox');
             box.classList.remove('warning', 'empty');
             if (available === 0) box.classList.add('empty');
             else if (available <= 3) box.classList.add('warning');
 
-            const emptyMsg = document.getElementById('emptyMsg');
+            var emptyMsg = document.getElementById('emptyMsg');
             if (available === 0 && total > 0) {
                 emptyMsg.textContent = t.noAvailable;
                 emptyMsg.classList.add('active');
@@ -906,8 +1783,8 @@
         }
 
         function logActivity(eventText) {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
+            var now = new Date();
+            var timeStr = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
             logs.push({ time: timeStr, event: eventText });
             if (logs.length > 200) logs.shift();
             localStorage.setItem('mfa_logs', JSON.stringify(logs));
@@ -915,16 +1792,16 @@
         }
 
         function updateLogTable() {
-            const tbody = document.getElementById('logBody');
+            var tbody = document.getElementById('logBody');
             tbody.innerHTML = '';
-            const reversed = logs.slice().reverse();
-            for (let i = 0; i < reversed.length; i++) {
-                const row = document.createElement('tr');
-                const num = document.createElement('td');
+            var reversed = logs.slice().reverse();
+            for (var i = 0; i < reversed.length; i++) {
+                var row = document.createElement('tr');
+                var num = document.createElement('td');
                 num.textContent = i+1;
-                const time = document.createElement('td');
+                var time = document.createElement('td');
                 time.textContent = reversed[i].time;
-                const evt = document.createElement('td');
+                var evt = document.createElement('td');
                 evt.textContent = reversed[i].event;
                 row.appendChild(num);
                 row.appendChild(time);
@@ -937,9 +1814,9 @@
         //  MAINTENANCE MODE
         // ===========================
         function updateMaintUI() {
-            const t = LANG[currentLang];
-            const btn = document.getElementById('maintBtnText');
-            const indicator = document.getElementById('maintIndicator');
+            var t = LANG[currentLang];
+            var btn = document.getElementById('maintBtnText');
+            var indicator = document.getElementById('maintIndicator');
             if (maintenanceMode) {
                 btn.textContent = t.maintActive;
                 indicator.style.display = 'inline-block';
@@ -966,7 +1843,7 @@
         }
 
         function checkMaintenanceForVisitor() {
-            const isAdmin = document.getElementById('adminPanel').classList.contains('active');
+            var isAdmin = document.getElementById('adminPanel').classList.contains('active');
             if (maintenanceMode && !isAdmin) {
                 document.getElementById('maintenanceOverlay').classList.add('active');
             } else {
@@ -978,10 +1855,12 @@
         //  ADMIN BUTTONS (enable/disable based on token)
         // ===========================
         function updateAdminButtons() {
-            const hasToken = !!(githubSettings.owner && githubSettings.repo && githubSettings.token);
-            document.getElementById('addBtn').disabled = !hasToken;
-            document.getElementById('clearBtn').disabled = !hasToken;
-            const statusEl = document.getElementById('githubStatus');
+            var hasToken = !!(githubSettings.owner && githubSettings.repo && githubSettings.token);
+            var addBtn = document.getElementById('addBtn');
+            var clearBtn = document.getElementById('clearBtn');
+            addBtn.disabled = !hasToken;
+            clearBtn.disabled = !hasToken;
+            var statusEl = document.getElementById('githubStatus');
             if (!hasToken && statusEl.textContent.indexOf('⚠️') === -1) {
                 if (statusEl.textContent === '' || statusEl.textContent.indexOf('Loading') === -1) {
                     statusEl.textContent = LANG[currentLang].noTokenWarning;
@@ -993,60 +1872,65 @@
         // ===========================
         //  IP & VPN
         // ===========================
-        let currentUserIP = null;
-        let isVPN = false;
-        let ipChecked = false;
-        let claimCooldownActive = false;
-        let cooldownTimerInterval = null;
+        var currentUserIP = null;
+        var isVPN = false;
+        var ipChecked = false;
+        var claimCooldownActive = false;
+        var cooldownTimerInterval = null;
 
-        function getCooldownKey(ip) { return 'cooldown_' + ip; }
+        function getCooldownKey(ip) {
+            return 'cooldown_' + ip;
+        }
+
         function getCooldownRemaining(ip) {
-            const key = getCooldownKey(ip);
-            const stored = localStorage.getItem(key);
+            var key = getCooldownKey(ip);
+            var stored = localStorage.getItem(key);
             if (!stored) return 0;
-            const elapsed = Date.now() - parseInt(stored);
-            const remaining = COOLDOWN_MS - elapsed;
+            var elapsed = Date.now() - parseInt(stored);
+            var remaining = COOLDOWN_MS - elapsed;
             return remaining > 0 ? remaining : 0;
         }
+
         function setCooldown(ip) {
-            localStorage.setItem(getCooldownKey(ip), Date.now().toString());
+            var key = getCooldownKey(ip);
+            localStorage.setItem(key, Date.now().toString());
         }
 
         function checkCooldownAndUpdateUI() {
             if (!currentUserIP) return false;
-            const remaining = getCooldownRemaining(currentUserIP);
+            var remaining = getCooldownRemaining(currentUserIP);
             if (remaining > 0) {
                 claimCooldownActive = true;
-                const t = LANG[currentLang];
-                const mins = Math.floor(remaining / 60000);
-                const secs = Math.floor((remaining % 60000) / 1000);
-                const msg = document.getElementById('statusMsg');
+                var t = LANG[currentLang];
+                var mins = Math.floor(remaining / 60000);
+                var secs = Math.floor((remaining % 60000) / 1000);
+                var msg = document.getElementById('statusMsg');
                 msg.textContent = t.cooldownMsg(mins, secs);
                 msg.className = 'status-msg active cooldown';
                 msg.dataset.type = 'cooldown';
                 document.getElementById('claimBtn').disabled = true;
                 if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                cooldownTimerInterval = setInterval(() => {
-                    const rem = getCooldownRemaining(currentUserIP);
+                cooldownTimerInterval = setInterval(function() {
+                    var rem = getCooldownRemaining(currentUserIP);
                     if (rem <= 0) {
                         clearInterval(cooldownTimerInterval);
                         cooldownTimerInterval = null;
                         claimCooldownActive = false;
                         document.getElementById('claimBtn').disabled = false;
-                        const msg2 = document.getElementById('statusMsg');
+                        var msg2 = document.getElementById('statusMsg');
                         msg2.textContent = t.cooldownDone;
                         msg2.className = 'status-msg active';
                         msg2.dataset.type = 'done';
-                        setTimeout(() => {
+                        setTimeout(function() {
                             if (document.getElementById('statusMsg').dataset.type === 'done') {
                                 document.getElementById('statusMsg').classList.remove('active');
                             }
                         }, 4000);
                         updateStats();
                     } else {
-                        const m = Math.floor(rem / 60000);
-                        const s = Math.floor((rem % 60000) / 1000);
-                        const msg3 = document.getElementById('statusMsg');
+                        var m = Math.floor(rem / 60000);
+                        var s = Math.floor((rem % 60000) / 1000);
+                        var msg3 = document.getElementById('statusMsg');
                         msg3.textContent = t.cooldownMsg(m, s);
                     }
                 }, 1000);
@@ -1058,7 +1942,7 @@
                     cooldownTimerInterval = null;
                 }
                 document.getElementById('claimBtn').disabled = false;
-                const msg = document.getElementById('statusMsg');
+                var msg = document.getElementById('statusMsg');
                 if (msg.dataset.type === 'cooldown' || msg.dataset.type === 'done') {
                     msg.classList.remove('active');
                 }
@@ -1067,20 +1951,22 @@
         }
 
         function checkVPNAndIP() {
-            const statusMsg = document.getElementById('statusMsg');
-            const t = LANG[currentLang];
+            var statusMsg = document.getElementById('statusMsg');
+            var t = LANG[currentLang];
             statusMsg.textContent = t.checkingIp;
             statusMsg.className = 'status-msg active';
             statusMsg.dataset.type = 'loading';
 
-            fetch('https://ipapi.co/json/', { headers: { 'Accept': 'application/json' } })
-            .then(res => {
+            fetch('https://ipapi.co/json/', {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(function(res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
             })
-            .then(data => {
-                const ip = data.ip || null;
-                const isVpn = data.is_vpn === true || data.is_proxy === true || data.is_datacenter === true;
+            .then(function(data) {
+                var ip = data.ip || null;
+                var isVpn = data.is_vpn === true || data.is_proxy === true || data.is_datacenter === true;
                 if (!ip) throw new Error('No IP returned');
                 currentUserIP = ip;
                 isVPN = isVpn;
@@ -1092,13 +1978,15 @@
                     document.getElementById('claimBtn').disabled = true;
                     return;
                 }
-                const cooldownActive = checkCooldownAndUpdateUI();
-                if (!cooldownActive) statusMsg.classList.remove('active');
+                var cooldownActive = checkCooldownAndUpdateUI();
+                if (!cooldownActive) {
+                    statusMsg.classList.remove('active');
+                }
                 document.getElementById('claimBtn').disabled = false;
             })
-            .catch(err => {
+            .catch(function(err) {
                 console.warn('IP API failed, using fallback fingerprint:', err);
-                const fallbackIP = 'fp_' + btoa(
+                var fallbackIP = 'fp_' + btoa(
                     navigator.userAgent + navigator.language + screen.width + screen.height +
                     (navigator.hardwareConcurrency || '') + (navigator.deviceMemory || '')
                 ).substring(0, 32);
@@ -1108,13 +1996,15 @@
                 statusMsg.textContent = t.ipError;
                 statusMsg.className = 'status-msg active';
                 statusMsg.dataset.type = 'error';
-                setTimeout(() => {
+                setTimeout(function() {
                     if (document.getElementById('statusMsg').dataset.type === 'error') {
                         document.getElementById('statusMsg').classList.remove('active');
                     }
                 }, 5000);
-                const cooldownActive = checkCooldownAndUpdateUI();
-                if (!cooldownActive) document.getElementById('statusMsg').classList.remove('active');
+                var cooldownActive = checkCooldownAndUpdateUI();
+                if (!cooldownActive) {
+                    document.getElementById('statusMsg').classList.remove('active');
+                }
                 document.getElementById('claimBtn').disabled = false;
             });
         }
@@ -1122,43 +2012,47 @@
         // ===========================
         //  TOAST NOTIFICATIONS
         // ===========================
-        let toastInterval = null;
+        var toastInterval = null;
 
         function startFakeNotifications() {
             if (toastInterval) clearInterval(toastInterval);
-            toastInterval = setInterval(() => {
+            toastInterval = setInterval(function() {
                 if (maintenanceMode) return;
                 showFakeToast();
             }, 10000 + Math.random() * 10000);
         }
 
         function showFakeToast() {
-            const t = LANG[currentLang];
-            const emails = ['john.doe', 'sara.ahmed', 'kareem.m', 'lina.h', 'mohammed.k', 'fatima.z', 'ali.r', 'nora.a', 'youssef.t', 'amira.s'];
-            const randomEmail = emails[Math.floor(Math.random() * emails.length)] + '@gmail.com';
-            const masked = randomEmail.substring(0,2) + '***' + randomEmail.substring(randomEmail.indexOf('@'));
-            const mins = Math.floor(Math.random() * 8) + 1;
-            let msg = t.toastClaim(masked, mins);
+            var t = LANG[currentLang];
+            var emails = ['john.doe', 'sara.ahmed', 'kareem.m', 'lina.h', 'mohammed.k', 'fatima.z', 'ali.r', 'nora.a', 'youssef.t', 'amira.s'];
+            var randomEmail = emails[Math.floor(Math.random() * emails.length)] + '@gmail.com';
+            var masked = randomEmail.substring(0,2) + '***' + randomEmail.substring(randomEmail.indexOf('@'));
+            var mins = Math.floor(Math.random() * 8) + 1;
+            var msg = t.toastClaim(masked, mins);
             if (currentLang === 'ar') {
                 msg = 'قام المستخدم ' + masked + ' بالمطالبة بحساب بنجاح قبل ' + mins + ' دقيقة' + (mins>1?'':'') + '! 🎉';
             }
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = msg;
             container.appendChild(toast);
-            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
-            while (container.children.length > 3) container.removeChild(container.firstChild);
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 5000);
+            while (container.children.length > 3) {
+                container.removeChild(container.firstChild);
+            }
         }
 
         // ===========================
-        //  CLAIM (with GitHub sync)
+        //  CLAIM (with GitHub sync and stats update)
         // ===========================
         function claimAccount() {
-            const t = LANG[currentLang];
-            const display = document.getElementById('accountDisplay');
-            const emptyMsg = document.getElementById('emptyMsg');
-            const statusMsg = document.getElementById('statusMsg');
+            var t = LANG[currentLang];
+            var display = document.getElementById('accountDisplay');
+            var emptyMsg = document.getElementById('emptyMsg');
+            var statusMsg = document.getElementById('statusMsg');
 
             if (!ipChecked) {
                 alert(t.checkingIp);
@@ -1173,36 +2067,36 @@
             }
 
             if (currentUserIP) {
-                const remaining = getCooldownRemaining(currentUserIP);
+                var remaining = getCooldownRemaining(currentUserIP);
                 if (remaining > 0) {
-                    const mins = Math.floor(remaining / 60000);
-                    const secs = Math.floor((remaining % 60000) / 1000);
+                    var mins = Math.floor(remaining / 60000);
+                    var secs = Math.floor((remaining % 60000) / 1000);
                     statusMsg.textContent = t.cooldownMsg(mins, secs);
                     statusMsg.className = 'status-msg active cooldown';
                     statusMsg.dataset.type = 'cooldown';
                     document.getElementById('claimBtn').disabled = true;
                     if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                    cooldownTimerInterval = setInterval(() => {
-                        const rem = getCooldownRemaining(currentUserIP);
+                    cooldownTimerInterval = setInterval(function() {
+                        var rem = getCooldownRemaining(currentUserIP);
                         if (rem <= 0) {
                             clearInterval(cooldownTimerInterval);
                             cooldownTimerInterval = null;
                             claimCooldownActive = false;
                             document.getElementById('claimBtn').disabled = false;
-                            const msg2 = document.getElementById('statusMsg');
+                            var msg2 = document.getElementById('statusMsg');
                             msg2.textContent = t.cooldownDone;
                             msg2.className = 'status-msg active';
                             msg2.dataset.type = 'done';
-                            setTimeout(() => {
+                            setTimeout(function() {
                                 if (document.getElementById('statusMsg').dataset.type === 'done') {
                                     document.getElementById('statusMsg').classList.remove('active');
                                 }
                             }, 4000);
                             updateStats();
                         } else {
-                            const m = Math.floor(rem / 60000);
-                            const s = Math.floor((rem % 60000) / 1000);
-                            const msg3 = document.getElementById('statusMsg');
+                            var m = Math.floor(rem / 60000);
+                            var s = Math.floor((rem % 60000) / 1000);
+                            var msg3 = document.getElementById('statusMsg');
                             msg3.textContent = t.cooldownMsg(m, s);
                         }
                     }, 1000);
@@ -1210,8 +2104,8 @@
                 }
             }
 
-            let unclaimedIdx = -1;
-            for (let i = 0; i < accounts.length; i++) {
+            var unclaimedIdx = -1;
+            for (var i = 0; i < accounts.length; i++) {
                 if (!accounts[i].claimed) {
                     unclaimedIdx = i;
                     break;
@@ -1222,52 +2116,53 @@
                 display.classList.remove('active');
                 emptyMsg.textContent = t.noAvailable;
                 emptyMsg.classList.add('active');
-                setTimeout(() => {
-                    if (accounts.filter(a => !a.claimed).length === 0) {
+                setTimeout(function() {
+                    if (accounts.filter(function(a) { return !a.claimed; }).length === 0) {
                         emptyMsg.textContent = t.noAccounts;
                     }
                 }, 3000);
                 return;
             }
 
-            const claimedAccount = accounts[unclaimedIdx];
+            var claimedAccount = accounts[unclaimedIdx];
             accounts.splice(unclaimedIdx, 1);
             claimedCount++;
-            // Update visitor count (just increment once per session)
-            // visitor count is global and updated per page load
+            // Update total claimed ever
+            totalClaimedEver++;
+            localStorage.setItem('mfa_total_claimed_ever', totalClaimedEver.toString());
             saveAccounts();
 
-            const location = currentUserIP ? ' (IP: ' + currentUserIP + ')' : '';
+            var location = currentUserIP ? ' (IP: ' + currentUserIP + ')' : '';
             logActivity('Account claimed by ' + (currentUserIP || 'unknown') + location);
 
             if (currentUserIP) {
                 setCooldown(currentUserIP);
                 claimCooldownActive = true;
                 document.getElementById('claimBtn').disabled = true;
-                const msg = document.getElementById('statusMsg');
+                var msg = document.getElementById('statusMsg');
                 msg.dataset.type = 'cooldown';
                 if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                cooldownTimerInterval = setInterval(() => {
-                    const rem = getCooldownRemaining(currentUserIP);
+                cooldownTimerInterval = setInterval(function() {
+                    var rem = getCooldownRemaining(currentUserIP);
                     if (rem <= 0) {
                         clearInterval(cooldownTimerInterval);
                         cooldownTimerInterval = null;
                         claimCooldownActive = false;
                         document.getElementById('claimBtn').disabled = false;
-                        const msg2 = document.getElementById('statusMsg');
+                        var msg2 = document.getElementById('statusMsg');
                         msg2.textContent = LANG[currentLang].cooldownDone;
                         msg2.className = 'status-msg active';
                         msg2.dataset.type = 'done';
-                        setTimeout(() => {
+                        setTimeout(function() {
                             if (document.getElementById('statusMsg').dataset.type === 'done') {
                                 document.getElementById('statusMsg').classList.remove('active');
                             }
                         }, 4000);
                         updateStats();
                     } else {
-                        const m = Math.floor(rem / 60000);
-                        const s = Math.floor((rem % 60000) / 1000);
-                        const msg3 = document.getElementById('statusMsg');
+                        var m = Math.floor(rem / 60000);
+                        var s = Math.floor((rem % 60000) / 1000);
+                        var msg3 = document.getElementById('statusMsg');
                         msg3.textContent = LANG[currentLang].cooldownMsg(m, s);
                         msg3.className = 'status-msg active cooldown';
                         msg3.dataset.type = 'cooldown';
@@ -1280,30 +2175,31 @@
             emptyMsg.classList.remove('active');
             display.classList.add('active');
 
-            const copyBtn = document.getElementById('copyBtn');
+            var copyBtn = document.getElementById('copyBtn');
             copyBtn.textContent = t.copyBtn;
             copyBtn.classList.remove('copied');
 
-            const orig = document.getElementById('claimBtn').textContent;
+            var orig = document.getElementById('claimBtn').textContent;
             document.getElementById('claimBtn').textContent = t.claimSuccess;
-            setTimeout(() => {
+            setTimeout(function() {
                 document.getElementById('claimBtn').textContent = orig;
             }, 1500);
 
             updateStats();
+            updateStatsUI();
 
-            // Sync with GitHub if token set
+            // Sync accounts with GitHub
             if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
-                const content = accounts.map(a => a.email + ':' + a.password).join('\n');
-                const path = githubSettings.path || 'mcfa.txt';
+                var content = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
+                var path = githubSettings.path || 'mcfa.txt';
                 getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
-                .then(sha => {
+                .then(function(sha) {
                     if (sha === null) {
-                        const payload = {
+                        var payload = {
                             message: 'Update after claim via MCFA site',
                             content: btoa(unescape(encodeURIComponent(content)))
                         };
-                        return fetch(`https://api.github.com/repos/${githubSettings.owner}/${githubSettings.repo}/contents/${encodeURIComponent(path)}`, {
+                        return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
                             method: 'PUT',
                             headers: {
                                 'Authorization': 'token ' + githubSettings.token,
@@ -1316,21 +2212,24 @@
                         return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update after claim via MCFA site');
                     }
                 })
-                .then(res => {
+                .then(function(res) {
                     if (res && !res.ok) throw new Error('HTTP ' + res.status);
                     if (res) return res.json();
                 })
-                .then(() => {
+                .then(function() {
                     logActivity('GitHub sync after claim successful');
                     document.getElementById('githubStatus').textContent = '✅ Synced after claim';
                     document.getElementById('githubStatus').style.color = '#00ff00';
                 })
-                .catch(err => {
+                .catch(function(err) {
                     console.warn('GitHub sync after claim failed:', err);
                     document.getElementById('githubStatus').textContent = '⚠️ GitHub sync failed: ' + err.message;
                     document.getElementById('githubStatus').style.color = '#ff4444';
                     logActivity('GitHub sync failed after claim: ' + err.message);
                 });
+
+                // Also save stats
+                saveStatsToGitHub();
             } else {
                 document.getElementById('githubStatus').textContent = LANG[currentLang].noTokenWarning;
                 document.getElementById('githubStatus').style.color = '#ffaa00';
@@ -1341,23 +2240,23 @@
         //  COPY
         // ===========================
         function copyAccount() {
-            const t = LANG[currentLang];
-            const email = document.getElementById('emailValue').textContent;
-            const password = document.getElementById('passwordValue').textContent;
-            const text = 'Email: ' + email + '\nPassword: ' + password;
+            var t = LANG[currentLang];
+            var email = document.getElementById('emailValue').textContent;
+            var password = document.getElementById('passwordValue').textContent;
+            var text = 'Email: ' + email + '\nPassword: ' + password;
 
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.getElementById('copyBtn');
+            navigator.clipboard.writeText(text).then(function() {
+                var btn = document.getElementById('copyBtn');
                 btn.textContent = t.copyCopied;
                 btn.classList.add('copied');
-                setTimeout(() => {
+                setTimeout(function() {
                     btn.textContent = t.copyBtn;
                     btn.classList.remove('copied');
                 }, 2000);
-            }).catch(() => {
-                const btn = document.getElementById('copyBtn');
+            }).catch(function() {
+                var btn = document.getElementById('copyBtn');
                 btn.textContent = t.copyFail;
-                setTimeout(() => {
+                setTimeout(function() {
                     btn.textContent = t.copyBtn;
                 }, 1500);
             });
@@ -1366,13 +2265,13 @@
         // ===========================
         //  PASSWORD MODAL
         // ===========================
-        const ADMIN_PASSWORD = '123321';
+        var ADMIN_PASSWORD = '123321';
 
         function openPasswordModal() {
             document.getElementById('passwordOverlay').classList.add('active');
             document.getElementById('pwInput').value = '';
             document.getElementById('pwError').textContent = '';
-            setTimeout(() => document.getElementById('pwInput').focus(), 100);
+            setTimeout(function() { document.getElementById('pwInput').focus(); }, 100);
         }
 
         function closePasswordModal() {
@@ -1381,20 +2280,20 @@
         }
 
         function verifyPassword() {
-            const input = document.getElementById('pwInput').value.trim();
-            const t = LANG[currentLang];
+            var input = document.getElementById('pwInput').value.trim();
+            var t = LANG[currentLang];
             if (input === ADMIN_PASSWORD) {
                 closePasswordModal();
                 document.getElementById('adminPanel').classList.add('active');
                 loadSettingsToUI();
                 checkMaintenanceForVisitor();
-                const ta = document.getElementById('bulkInput');
+                var ta = document.getElementById('bulkInput');
                 if (!ta.value.trim()) {
                     ta.placeholder = currentLang === 'ar' ?
                         'الصق الحسابات بهذا الشكل:\nemail:pass\nemail:pass' :
                         'Paste accounts in format:\nemail:pass\nemail:pass';
                 }
-                ta.value = accounts.map(a => a.email + ':' + a.password).join('\n');
+                ta.value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 updateStats();
                 updateLogTable();
                 updateMaintUI();
@@ -1407,12 +2306,12 @@
             }
         }
 
-        document.getElementById('pwInput').addEventListener('keydown', e => {
+        document.getElementById('pwInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') verifyPassword();
             if (e.key === 'Escape') closePasswordModal();
         });
 
-        document.getElementById('passwordOverlay').addEventListener('click', e => {
+        document.getElementById('passwordOverlay').addEventListener('click', function(e) {
             if (e.target === e.currentTarget) closePasswordModal();
         });
 
@@ -1420,30 +2319,31 @@
         //  ADMIN: ADD ACCOUNTS (local + sync)
         // ===========================
         function addAccounts() {
-            const t = LANG[currentLang];
+            var t = LANG[currentLang];
             if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
                 alert(t.noTokenWarning);
                 return;
             }
 
-            const input = document.getElementById('bulkInput').value.trim();
+            var input = document.getElementById('bulkInput').value.trim();
             if (!input) return;
 
-            const lines = input.split('\n');
-            let added = 0;
+            var lines = input.split('\n');
+            var added = 0;
 
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed) continue;
-                let parts;
-                if (trimmed.indexOf(':') !== -1) parts = trimmed.split(':');
-                else if (trimmed.indexOf('|') !== -1) parts = trimmed.split('|');
-                else parts = trimmed.split(/\s+/);
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                var parts;
+                if (line.indexOf(':') !== -1) parts = line.split(':');
+                else if (line.indexOf('|') !== -1) parts = line.split('|');
+                else parts = line.split(/\s+/);
+
                 if (parts.length >= 2) {
-                    const email = parts[0].trim();
-                    const password = parts.slice(1).join(':').trim();
+                    var email = parts[0].trim();
+                    var password = parts.slice(1).join(':').trim();
                     if (email && password) {
-                        accounts.push({ email, password, claimed: false });
+                        accounts.push({ email: email, password: password, claimed: false });
                         added++;
                     }
                 }
@@ -1451,7 +2351,7 @@
 
             if (added > 0) {
                 saveAccounts();
-                document.getElementById('bulkInput').value = accounts.map(a => a.email + ':' + a.password).join('\n');
+                document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 alert(t.addSuccess(added));
                 logActivity('Added ' + added + ' accounts locally');
                 saveToGitHub();
@@ -1463,7 +2363,7 @@
         //  ADMIN: CLEAR ALL
         // ===========================
         function clearAccounts() {
-            const t = LANG[currentLang];
+            var t = LANG[currentLang];
             if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
                 alert(t.noTokenWarning);
                 return;
@@ -1482,9 +2382,9 @@
         //  PARTICLES
         // ===========================
         function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 45; i++) {
-                const p = document.createElement('div');
+            var container = document.getElementById('particles');
+            for (var i = 0; i < 45; i++) {
+                var p = document.createElement('div');
                 p.className = 'particle';
                 p.style.left = Math.random() * 100 + '%';
                 p.style.animationDelay = Math.random() * 12 + 's';
@@ -1500,30 +2400,40 @@
         // ===========================
         createParticles();
 
-        visitorCount++;
-        localStorage.setItem('mfa_visitors', visitorCount.toString());
-        logActivity('Page visit (total ' + visitorCount + ')');
+        // Increment visitor count (global total)
+        totalVisitors++;
+        localStorage.setItem('mfa_total_visitors', totalVisitors.toString());
+        localStorage.setItem('mfa_visitors', visitorCount.toString()); // keep old local counter
+        logActivity('Page visit (total ' + totalVisitors + ')');
 
+        // Load settings from localStorage
         loadSettingsToUI();
 
-        let initPromise = Promise.resolve();
+        // Load maintenance state, stats and accounts
+        var initPromise = Promise.resolve();
         if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
             initPromise = loadMaintenanceFromGitHub()
-                .then(() => loadInformationsFromGitHub())
-                .then(() => loadFromGitHub())
-                .catch(err => console.warn('Init error:', err));
+                .then(function() { return loadStatsFromGitHub(); })
+                .then(function() { return loadFromGitHub(); })
+                .catch(function(err) {
+                    console.warn('Init error:', err);
+                });
         } else {
+            // No GitHub settings, use local state (no demo accounts)
             if (accounts.length === 0) {
                 accounts = [];
                 saveAccounts();
             }
+            // Stats remain from localStorage
+            updateStatsUI();
         }
 
-        initPromise.then(() => {
-            // Ensure claimed count matches accounts
-            let actualClaimed = 0;
-            for (const acc of accounts) {
-                if (acc.claimed) actualClaimed++;
+        // Wait for init to complete then continue
+        initPromise.then(function() {
+            // Ensure claimed count is correct
+            var actualClaimed = 0;
+            for (var i = 0; i < accounts.length; i++) {
+                if (accounts[i].claimed) actualClaimed++;
             }
             if (actualClaimed !== claimedCount) {
                 claimedCount = actualClaimed;
@@ -1534,7 +2444,7 @@
             checkVPNAndIP();
             startFakeNotifications();
 
-            document.addEventListener('keydown', e => {
+            document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     document.getElementById('adminPanel').classList.remove('active');
                     closePasswordModal();
@@ -1542,9 +2452,9 @@
                 }
             });
 
-            document.addEventListener('click', e => {
-                const panel = document.getElementById('adminPanel');
-                const toggle = document.getElementById('adminToggleBtn');
+            document.addEventListener('click', function(e) {
+                var panel = document.getElementById('adminPanel');
+                var toggle = document.getElementById('adminToggleBtn');
                 if (panel.classList.contains('active')) {
                     if (!panel.contains(e.target) && !toggle.contains(e.target) &&
                         !document.getElementById('passwordOverlay').classList.contains('active')) {
@@ -1557,13 +2467,15 @@
             checkMaintenanceForVisitor();
             updateMaintUI();
             updateAdminButtons();
+            updateStatsUI();
 
             console.log('🚀 MCFA Accounts with GitHub integration loaded!');
             console.log('🔑 Admin password: 123321');
             console.log('⏳ Cooldown: 10 minutes per IP');
             console.log('📊 Total accounts:', accounts.length);
             console.log('🛡️ VPN detection enabled via ipapi.co');
-            console.log('👁️ Visitors:', visitorCount);
+            console.log('👁️ Total visitors:', totalVisitors);
+            console.log('📋 Total claimed ever:', totalClaimedEver);
             console.log('📋 Log entries:', logs.length);
             console.log('🔗 GitHub settings loaded:', githubSettings.owner ? 'Yes' : 'No');
             console.log('🔧 Maintenance mode:', maintenanceMode);
