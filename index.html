@@ -1,1232 +1,371 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="icon" href="data:,">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCFA Accounts ⚡</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+<script>
+    // ===========================
+    //  LANGUAGE SYSTEM
+    // ===========================
+    const LANG = {
+        en: {
+            mainTitle: 'MCFA ACCOUNTS ⚡',
+            claimBtn: 'Claim MCFA Account 💎',
+            emailLabel: 'Email:',
+            passLabel: 'Password:',
+            copyBtn: '📋 Copy Account',
+            copyCopied: '✅ Copied!',
+            emptyMsg: '❌ No accounts available!',
+            availLabel: '🟢 Available',
+            claimedLabel: '🔵 Claimed',
+            totalLabel: '🟡 Total',
+            adminToggle: 'Admin',
+            adminTitle: '🛠️ Manage Accounts',
+            addBtn: 'Add Accounts',
+            clearBtn: 'Clear All',
+            stats: function(total, claimed) { return 'Accounts: ' + total + ' | Claimed: ' + claimed; },
+            pwTitle: '🔐 Admin Access',
+            pwConfirm: 'Unlock',
+            pwCancel: 'Cancel',
+            pwErrorWrong: '❌ Wrong password!',
+            pwPlaceholder: '••••••',
+            subLabel: 'subscribe to mostafa_pro',
+            subBtn: 'Subscribe',
+            noAccounts: '❌ No accounts available! Add accounts in admin panel.',
+            addSuccess: function(n) { return '✅ Added ' + n + ' accounts!'; },
+            clearConfirm: '⚠️ Are you sure you want to clear ALL accounts?',
+            clearDone: '🗑️ All accounts cleared.',
+            copySuccess: '✅ Copied to clipboard!',
+            copyFail: '❌ Failed to copy.',
+            claimSuccess: '🎉 Account claimed!',
+            noAvailable: '❌ No available accounts left!',
+            vpnDetected: '🚫 Please turn off your VPN to continue.',
+            checkingIp: '🔍 Checking your IP...',
+            cooldownMsg: function(mins, secs) { return '⏳ Please wait ' + mins + 'm ' + secs + 's before claiming again.'; },
+            cooldownDone: '✅ Cooldown finished! You can claim now.',
+            ipError: '⚠️ Could not verify your IP. Please refresh and try again.',
+        },
+        ar: {
+            mainTitle: 'حسابات MCFA ⚡',
+            claimBtn: 'احصل على حساب MCFA 💎',
+            emailLabel: 'البريد الإلكتروني:',
+            passLabel: 'كلمة المرور:',
+            copyBtn: '📋 نسخ الحساب',
+            copyCopied: '✅ تم النسخ!',
+            emptyMsg: '❌ لا توجد حسابات متاحة!',
+            availLabel: '🟢 متاحة',
+            claimedLabel: '🔵 محجوزة',
+            totalLabel: '🟡 الإجمالي',
+            adminToggle: 'المشرف',
+            adminTitle: '🛠️ إدارة الحسابات',
+            addBtn: 'إضافة حسابات',
+            clearBtn: 'مسح الكل',
+            stats: function(total, claimed) { return 'الحسابات: ' + total + ' | المحجوزة: ' + claimed; },
+            pwTitle: '🔐 دخول المشرف',
+            pwConfirm: 'فتح',
+            pwCancel: 'إلغاء',
+            pwErrorWrong: '❌ كلمة مرور خاطئة!',
+            pwPlaceholder: '••••••',
+            subLabel: 'اشترك في mostafa_pro',
+            subBtn: 'اشترك',
+            noAccounts: '❌ لا توجد حسابات! أضف حسابات في لوحة المشرف.',
+            addSuccess: function(n) { return '✅ تم إضافة ' + n + ' حسابات!'; },
+            clearConfirm: '⚠️ هل أنت متأكد من مسح جميع الحسابات؟',
+            clearDone: '🗑️ تم مسح جميع الحسابات.',
+            copySuccess: '✅ تم النسخ إلى الحافظة!',
+            copyFail: '❌ فشل النسخ.',
+            claimSuccess: '🎉 تم الحصول على الحساب!',
+            noAvailable: '❌ لا توجد حسابات متاحة!',
+            vpnDetected: '🚫 يرجى إيقاف تشغيل VPN للمتابعة.',
+            checkingIp: '🔍 جاري التحقق من عنوان IP الخاص بك...',
+            cooldownMsg: function(mins, secs) { return '⏳ يرجى الانتظار ' + mins + ' د و ' + secs + ' ث قبل المطالبة مرة أخرى.'; },
+            cooldownDone: '✅ انتهت فترة الانتظار! يمكنك المطالبة الآن.',
+            ipError: '⚠️ تعذر التحقق من IP. يرجى التحديث والمحاولة مرة أخرى.',
+        }
+    };
+
+    let currentLang = 'en';
+
+    function setLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll('.lang-btn').forEach(function(b) {
+            b.classList.toggle('active', b.dataset.lang === lang);
+        });
+        var t = LANG[lang];
+        document.getElementById('mainTitle').textContent = t.mainTitle;
+        document.getElementById('claimBtn').textContent = t.claimBtn;
+        document.getElementById('emailLabel').textContent = t.emailLabel;
+        document.getElementById('passLabel').textContent = t.passLabel;
+        document.getElementById('copyBtn').textContent = t.copyBtn;
+        document.getElementById('emptyMsg').textContent = t.emptyMsg;
+        document.getElementById('availLabel').textContent = t.availLabel;
+        document.getElementById('claimedLabel').textContent = t.claimedLabel;
+        document.getElementById('totalLabel').textContent = t.totalLabel;
+        document.getElementById('adminToggleText').textContent = t.adminToggle;
+        document.getElementById('adminTitle').textContent = t.adminTitle;
+        document.getElementById('addBtnText').textContent = t.addBtn;
+        document.getElementById('clearBtnText').textContent = t.clearBtn;
+        document.getElementById('pwTitle').textContent = t.pwTitle;
+        document.getElementById('pwConfirmText').textContent = t.pwConfirm;
+        document.getElementById('pwCancelText').textContent = t.pwCancel;
+        document.getElementById('pwInput').placeholder = t.pwPlaceholder;
+        document.getElementById('subLabelText').textContent = t.subLabel;
+        document.getElementById('subBtnText').textContent = t.subBtn;
+
+        updateStats();
+
+        var copyBtn = document.getElementById('copyBtn');
+        if (copyBtn.classList.contains('copied')) {
+            copyBtn.textContent = t.copyCopied;
         }
 
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            padding-bottom: 160px;
-            transition: all 0.3s ease;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+        var subPanel = document.getElementById('subscribePanel');
+        if (lang === 'ar') {
+            subPanel.style.right = 'auto';
+            subPanel.style.left = '0';
+            subPanel.style.borderRadius = '0 16px 16px 0';
+            subPanel.style.borderRight = '2px solid #ff0000';
+            subPanel.style.borderLeft = 'none';
+        } else {
+            subPanel.style.right = '0';
+            subPanel.style.left = 'auto';
+            subPanel.style.borderRadius = '16px 0 0 16px';
+            subPanel.style.borderRight = 'none';
+            subPanel.style.borderLeft = '2px solid #ff0000';
         }
 
-        /* ---- LANGUAGE TOGGLE (top right) ---- */
-        .lang-toggle-wrap {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            display: flex;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 6px 10px;
-            border-radius: 30px;
-            border: 1px solid #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
+        var adminPanel = document.getElementById('adminPanel');
+        var adminWrap = document.querySelector('.admin-panel-wrap');
+        if (lang === 'ar') {
+            adminPanel.style.right = 'auto';
+            adminPanel.style.left = '20px';
+            adminWrap.style.right = 'auto';
+            adminWrap.style.left = '20px';
+        } else {
+            adminPanel.style.right = '20px';
+            adminPanel.style.left = 'auto';
+            adminWrap.style.right = '20px';
+            adminWrap.style.left = 'auto';
         }
 
-        .lang-btn {
-            background: transparent;
-            border: none;
-            color: #888;
-            font-size: 0.85rem;
-            font-weight: 700;
-            padding: 5px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .lang-btn:hover {
-            color: #fff;
-        }
-
-        .lang-btn.active {
-            background: #00ff00;
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
-        }
-
-        /* ---- GLOW ---- */
-        .glow-center {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(0, 255, 0, 0.12) 0%, rgba(0, 255, 0, 0.04) 30%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-            animation: pulseGlow 4s ease-in-out infinite;
-        }
-
-        @keyframes pulseGlow {
-            0%,
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0.7;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.2);
-                opacity: 1;
-            }
-        }
-
-        /* ---- PARTICLES ---- */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: #00ff00;
-            border-radius: 50%;
-            opacity: 0.4;
-            animation: floatParticle 12s infinite;
-        }
-        @keyframes floatParticle {
-            0%,
-            100% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.5;
-            }
-            90% {
-                opacity: 0.5;
-            }
-            100% {
-                transform: translateY(-100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-
-        /* ---- MAIN CONTAINER ---- */
-        .container {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 20px;
-            padding-bottom: 40px;
-            width: 100%;
-            max-width: 700px;
-        }
-
-        .title {
-            font-size: 3.8rem;
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5), 0 0 40px rgba(0, 255, 0, 0.3), 0 0 80px rgba(0, 255, 0, 0.1);
-            margin-bottom: 50px;
-            animation: floatTitle 3s ease-in-out infinite;
-            letter-spacing: 2px;
-            word-break: break-word;
-        }
-
-        @keyframes floatTitle {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-12px);
+        var msgEl = document.getElementById('statusMsg');
+        if (msgEl.classList.contains('active')) {
+            var type = msgEl.dataset.type;
+            if (type === 'vpn') {
+                msgEl.textContent = t.vpnDetected;
             }
         }
-
-        /* ---- CLAIM BUTTON ---- */
-        .claim-btn {
-            background: linear-gradient(135deg, #00d924 0%, #00ff00 50%, #00d924 100%);
-            color: #000;
-            font-size: 2rem;
-            font-weight: 900;
-            padding: 25px 60px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2), inset 0 2px 0 rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            animation: pulseBtn 2s ease-in-out infinite;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .claim-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            animation: none;
-            transform: scale(0.98);
-            background: linear-gradient(135deg, #444 0%, #666 50%, #444 100%);
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
-        }
-
-        .claim-btn:disabled:hover {
-            transform: scale(0.98);
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
-        }
-
-        @keyframes pulseBtn {
-            0%,
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), 0 0 60px rgba(0, 255, 0, 0.2);
-            }
-            50% {
-                transform: scale(1.04);
-                box-shadow: 0 0 50px rgba(0, 255, 0, 0.6), 0 0 100px rgba(0, 255, 0, 0.3);
-            }
-        }
-
-        .claim-btn:hover:not(:disabled) {
-            transform: scale(1.08) translateY(-4px);
-            box-shadow: 0 0 60px rgba(0, 255, 0, 0.8), 0 0 120px rgba(0, 255, 0, 0.4);
-        }
-
-        .claim-btn:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-
-        .claim-btn::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-
-        .claim-btn:disabled::before {
-            animation: none;
-            opacity: 0;
-        }
-
-        @keyframes shine {
-            0% {
-                transform: translateX(-100%) rotate(45deg);
-            }
-            100% {
-                transform: translateX(100%) rotate(45deg);
-            }
-        }
-
-        /* ---- ACCOUNT DISPLAY ---- */
-        .account-display {
-            display: none;
-            margin-top: 40px;
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #00ff00;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
-            animation: slideIn 0.5s ease-out;
-        }
-
-        .account-display.active {
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .account-info {
-            color: #00ff00;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .account-info label {
-            color: #888;
-            font-size: 0.85rem;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .account-info .value {
-            color: #fff;
-            font-size: 1.2rem;
-            font-weight: 700;
-            word-break: break-all;
-        }
-
-        .copy-btn {
-            background: linear-gradient(135deg, #00d924, #00ff00);
-            color: #000;
-            font-size: 1.1rem;
-            font-weight: 700;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .copy-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.5);
-        }
-        .copy-btn.copied {
-            background: linear-gradient(135deg, #444, #666);
-            color: #fff;
-        }
-
-        .empty-msg {
-            color: #ff4444;
-            font-size: 1.2rem;
-            margin-top: 25px;
-            display: none;
-            font-weight: 700;
-        }
-        .empty-msg.active {
-            display: block;
-        }
-
-        /* ---- COOLDOWN & VPN MSG ---- */
-        .status-msg {
-            color: #ffaa00;
-            font-size: 1.1rem;
-            margin-top: 20px;
-            font-weight: 700;
-            min-height: 32px;
-            display: none;
-            animation: fadeInUp 0.4s ease-out;
-        }
-        .status-msg.active {
-            display: block;
-        }
-        .status-msg.vpn {
-            color: #ff4444;
-        }
-        .status-msg.cooldown {
-            color: #ffaa00;
-        }
-        .status-msg .timer {
-            color: #00ff00;
-            font-size: 1.3rem;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ---- COUNTERS BAR ---- */
-        .counters-bar {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            display: flex;
-            gap: 15px;
-            animation: fadeInUp 1s ease-out;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .counter-box {
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid;
-            border-radius: 15px;
-            padding: 14px 24px;
-            text-align: center;
-            min-width: 150px;
-            transition: all 0.5s ease;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .counter-box .label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .counter-box .number {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: #fff;
-        }
-
-        .counter-box.available {
-            border-color: #00ff00;
-            color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.25);
-        }
-        .counter-box.claimed {
-            border-color: #00aaff;
-            color: #00aaff;
-            box-shadow: 0 0 20px rgba(0, 170, 255, 0.25);
-        }
-        .counter-box.total {
-            border-color: #ffaa00;
-            color: #ffaa00;
-            box-shadow: 0 0 20px rgba(255, 170, 0, 0.25);
-        }
-        .counter-box.available.warning {
-            border-color: #ffaa00;
-            color: #ffaa00;
-            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
-        }
-        .counter-box.available.empty {
-            border-color: #ff4444;
-            color: #ff4444;
-            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        /* ---- ADMIN PANEL (password gate) ---- */
-        .admin-panel-wrap {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            z-index: 100;
-        }
-
-        .admin-toggle {
-            background: rgba(255, 255, 255, 0.08);
-            color: #888;
-            border: 1px solid #333;
-            padding: 10px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-        }
-        .admin-toggle:hover {
-            color: #00ff00;
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
-        }
-
-        .admin-panel {
-            display: none;
-            position: fixed;
-            bottom: 140px;
-            right: 20px;
-            width: 420px;
-            max-height: 520px;
-            background: rgba(10, 10, 10, 0.96);
-            border: 2px solid #00ff00;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 0 40px rgba(0, 255, 0, 0.15);
-            overflow-y: auto;
-            z-index: 101;
-            backdrop-filter: blur(8px);
-        }
-
-        .admin-panel.active {
-            display: block;
-        }
-
-        .admin-panel h3 {
-            color: #00ff00;
-            margin-bottom: 18px;
-            font-size: 1.3rem;
-            font-weight: 900;
-        }
-
-        .admin-panel textarea {
-            width: 100%;
-            height: 150px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 10px;
-            color: #00ff00;
-            padding: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            resize: vertical;
-            margin-bottom: 12px;
-            outline: none;
-            transition: border 0.3s ease;
-        }
-        .admin-panel textarea:focus {
-            border-color: #00ff00;
-        }
-        .admin-panel textarea::placeholder {
-            color: #555;
-        }
-
-        .admin-panel .btn-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .admin-btn {
-            background: #00ff00;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            flex: 1;
-            min-width: 100px;
-        }
-
-        .admin-btn:hover {
-            transform: scale(1.04);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-        .admin-btn.danger {
-            background: #ff4444;
-            color: #fff;
-        }
-        .admin-btn.danger:hover {
-            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
-        }
-
-        .admin-panel .stats {
-            color: #888;
-            font-size: 0.9rem;
-            margin-top: 8px;
-            border-top: 1px solid #222;
-            padding-top: 12px;
-        }
-
-        /* ---- PASSWORD DIALOG (custom modal) ---- */
-        .password-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-        }
-        .password-overlay.active {
-            display: flex;
-        }
-
-        .password-modal {
-            background: rgba(10, 10, 10, 0.96);
-            border: 2px solid #00ff00;
-            border-radius: 20px;
-            padding: 40px 36px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 0 60px rgba(0, 255, 0, 0.2);
-            text-align: center;
-            animation: modalPop 0.3s ease-out;
-        }
-
-        @keyframes modalPop {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .password-modal h2 {
-            color: #00ff00;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: 900;
-        }
-
-        .password-modal input[type="password"] {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 2px solid #333;
-            background: #1a1a1a;
-            color: #fff;
-            font-size: 1.1rem;
-            outline: none;
-            transition: border 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            text-align: center;
-            letter-spacing: 4px;
-        }
-        .password-modal input[type="password"]:focus {
-            border-color: #00ff00;
-        }
-
-        .password-modal .pw-btn-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            justify-content: center;
-        }
-
-        .password-modal .pw-btn {
-            padding: 12px 32px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-        }
-        .password-modal .pw-btn.confirm {
-            background: #00ff00;
-            color: #000;
-        }
-        .password-modal .pw-btn.confirm:hover {
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
-            transform: scale(1.04);
-        }
-        .password-modal .pw-btn.cancel {
-            background: #333;
-            color: #aaa;
-        }
-        .password-modal .pw-btn.cancel:hover {
-            background: #444;
-            color: #fff;
-        }
-
-        .password-modal .pw-error {
-            color: #ff4444;
-            font-size: 0.9rem;
-            margin-top: 14px;
-            min-height: 24px;
-            font-weight: 700;
-        }
-
-        /* ---- SUBSCRIBE SIDE PANEL ---- */
-        .subscribe-panel {
-            position: fixed;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 50;
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #ff0000;
-            border-right: none;
-            border-radius: 16px 0 0 16px;
-            padding: 20px 16px;
-            box-shadow: 0 0 40px rgba(255, 0, 0, 0.2);
-            max-width: 140px;
-            text-align: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(6px);
-        }
-
-        .subscribe-panel:hover {
-            box-shadow: 0 0 60px rgba(255, 0, 0, 0.35);
-            border-color: #ff3333;
-        }
-
-        .subscribe-panel .sub-label {
-            color: #fff;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            word-break: break-word;
-            line-height: 1.3;
-        }
-        .subscribe-panel .sub-label span {
-            color: #ff4444;
-        }
-
-        .subscribe-panel .sub-btn {
-            display: inline-block;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, #ff0000, #cc0000);
-            color: #fff;
-            font-weight: 900;
-            font-size: 0.85rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
-            animation: subPulse 1.8s ease-in-out infinite;
-            width: 100%;
-            word-break: break-word;
-            line-height: 1.2;
-        }
-
-        @keyframes subPulse {
-            0%,
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 20px rgba(255, 0, 0, 0.3), 0 0 40px rgba(255, 0, 0, 0.1);
-            }
-            50% {
-                transform: scale(1.06);
-                box-shadow: 0 0 35px rgba(255, 0, 0, 0.6), 0 0 70px rgba(255, 0, 0, 0.25);
-            }
-        }
-
-        .subscribe-panel .sub-btn:hover {
-            transform: scale(1.1) translateX(-4px);
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.7), 0 0 100px rgba(255, 0, 0, 0.3);
-        }
-
-        .subscribe-panel .sub-btn .icon {
-            display: block;
-            font-size: 1.6rem;
-            margin-bottom: 4px;
-        }
-
-        /* ---- RESPONSIVE ---- */
-        @media (max-width: 700px) {
-            .counters-bar {
-                flex-direction: row;
-                gap: 8px;
-                bottom: 12px;
-                padding: 0 10px;
-            }
-            .counter-box {
-                min-width: 100px;
-                padding: 10px 14px;
-            }
-            .counter-box .number {
-                font-size: 1.3rem;
-            }
-            .title {
-                font-size: 2.4rem;
-                margin-bottom: 30px;
-            }
-            .claim-btn {
-                font-size: 1.3rem;
-                padding: 18px 30px;
-            }
-            .container {
-                padding: 10px;
-                padding-bottom: 120px;
-            }
-            .admin-panel {
-                width: 92%;
-                right: 4%;
-                bottom: 130px;
-                max-height: 450px;
-                padding: 18px;
-            }
-            .admin-panel-wrap {
-                bottom: 80px;
-                right: 10px;
-            }
-            .admin-toggle {
-                padding: 8px 14px;
-                font-size: 0.8rem;
-            }
-            .subscribe-panel {
-                max-width: 100px;
-                padding: 14px 10px;
-            }
-            .subscribe-panel .sub-label {
-                font-size: 0.6rem;
-            }
-            .subscribe-panel .sub-btn {
-                font-size: 0.7rem;
-                padding: 10px 10px;
-            }
-            .subscribe-panel .sub-btn .icon {
-                font-size: 1.2rem;
-            }
-            .lang-toggle-wrap {
-                top: 10px;
-                right: 10px;
-                padding: 4px 8px;
-            }
-            .lang-btn {
-                font-size: 0.7rem;
-                padding: 4px 10px;
-            }
-            .password-modal {
-                padding: 30px 20px;
-            }
-            .password-modal h2 {
-                font-size: 1.2rem;
-            }
-            .status-msg {
-                font-size: 0.95rem;
-            }
-        }
-
-        @media (max-width: 450px) {
-            .title {
-                font-size: 1.8rem;
-            }
-            .claim-btn {
-                font-size: 1rem;
-                padding: 14px 20px;
-            }
-            .counter-box {
-                min-width: 70px;
-                padding: 8px 10px;
-            }
-            .counter-box .number {
-                font-size: 1.1rem;
-            }
-            .counter-box .label {
-                font-size: 0.6rem;
-            }
-            .account-display {
-                padding: 20px;
-            }
-            .admin-panel {
-                padding: 14px;
-                max-height: 380px;
-            }
-            .subscribe-panel {
-                max-width: 80px;
-                padding: 10px 8px;
-            }
-            .subscribe-panel .sub-label {
-                font-size: 0.5rem;
-            }
-            .subscribe-panel .sub-btn {
-                font-size: 0.6rem;
-                padding: 8px 6px;
-            }
-            .subscribe-panel .sub-btn .icon {
-                font-size: 1rem;
-            }
-            .status-msg {
-                font-size: 0.85rem;
-            }
-        }
-
-        /* scrollbar */
-        .admin-panel::-webkit-scrollbar {
-            width: 4px;
-        }
-        .admin-panel::-webkit-scrollbar-track {
-            background: #111;
-        }
-        .admin-panel::-webkit-scrollbar-thumb {
-            background: #00ff00;
-            border-radius: 4px;
-        }
-
-        /* loading spinner for IP check */
-        .ip-loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: #00ff00;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- ===== LANGUAGE TOGGLE ===== -->
-    <div class="lang-toggle-wrap">
-        <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" data-lang="ar" onclick="setLang('ar')">عربي</button>
-    </div>
-
-    <!-- ===== GLOW ===== -->
-    <div class="glow-center"></div>
-
-    <!-- ===== PARTICLES ===== -->
-    <div class="particles" id="particles"></div>
-
-    <!-- ===== SUBSCRIBE PANEL ===== -->
-    <div class="subscribe-panel" id="subscribePanel">
-        <div class="sub-label" id="subLabel">📺 <span id="subLabelText">subscribe to mostafa_pro</span></div>
-        <a class="sub-btn" id="subBtn" href="https://www.youtube.com/@Mostafa_xPro" target="_blank" rel="noopener noreferrer">
-            <span class="icon">▶</span>
-            <span id="subBtnText">Subscribe</span>
-        </a>
-    </div>
-
-    <!-- ===== MAIN ===== -->
-    <div class="container">
-        <h1 class="title" id="mainTitle">MCFA ACCOUNTS ⚡</h1>
-
-        <button class="claim-btn" id="claimBtn" onclick="claimAccount()">Claim MCFA Account 💎</button>
-
-        <!-- Status messages: VPN warning / cooldown -->
-        <div class="status-msg" id="statusMsg"></div>
-
-        <div class="account-display" id="accountDisplay">
-            <div class="account-info">
-                <label id="emailLabel">Email:</label>
-                <div class="value" id="emailValue">test@gmail.com</div>
-            </div>
-            <div class="account-info">
-                <label id="passLabel">Password:</label>
-                <div class="value" id="passwordValue">pass</div>
-            </div>
-            <button class="copy-btn" id="copyBtn" onclick="copyAccount()">📋 Copy Account</button>
-        </div>
-
-        <div class="empty-msg" id="emptyMsg">❌ No accounts available!</div>
-    </div>
-
-    <!-- ===== COUNTERS ===== -->
-    <div class="counters-bar" id="countersBar">
-        <div class="counter-box available" id="availableBox">
-            <div class="label" id="availLabel">🟢 Available</div>
-            <div class="number" id="availableCount">0</div>
-        </div>
-        <div class="counter-box claimed" id="claimedBox">
-            <div class="label" id="claimedLabel">🔵 Claimed</div>
-            <div class="number" id="claimedCountDisplay">0</div>
-        </div>
-        <div class="counter-box total" id="totalBox">
-            <div class="label" id="totalLabel">🟡 Total</div>
-            <div class="number" id="totalCount">0</div>
-        </div>
-    </div>
-
-    <!-- ===== ADMIN TOGGLE ===== -->
-    <div class="admin-panel-wrap">
-        <button class="admin-toggle" id="adminToggleBtn" onclick="openPasswordModal()">⚙️ <span id="adminToggleText">Admin</span></button>
-    </div>
-
-    <!-- ===== ADMIN PANEL (hidden until password) ===== -->
-    <div class="admin-panel" id="adminPanel">
-        <h3 id="adminTitle">🛠️ Manage Accounts</h3>
-        <textarea id="bulkInput" placeholder="Paste accounts in format:&#10;email:pass&#10;email:pass&#10;email:pass"></textarea>
-        <div class="btn-row">
-            <button class="admin-btn" id="addBtn" onclick="addAccounts()">➕ <span id="addBtnText">Add Accounts</span></button>
-            <button class="admin-btn danger" id="clearBtn" onclick="clearAccounts()">🗑️ <span id="clearBtnText">Clear All</span></button>
-        </div>
-        <div class="stats" id="stats">Accounts: 0 | Claimed: 0</div>
-    </div>
-
-    <!-- ===== PASSWORD MODAL ===== -->
-    <div class="password-overlay" id="passwordOverlay">
-        <div class="password-modal">
-            <h2 id="pwTitle">🔐 Admin Access</h2>
-            <input type="password" id="pwInput" placeholder="••••••" maxlength="20" autofocus>
-            <div class="pw-btn-row">
-                <button class="pw-btn confirm" id="pwConfirmBtn" onclick="verifyPassword()">✓ <span id="pwConfirmText">Unlock</span></button>
-                <button class="pw-btn cancel" onclick="closePasswordModal()">✕ <span id="pwCancelText">Cancel</span></button>
-            </div>
-            <div class="pw-error" id="pwError"></div>
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- ===== JAVASCRIPT (EMBEDDED – NO EXTERNAL FILE) ===== -->
-    <script>
-        // ===========================
-        //  LANGUAGE SYSTEM
-        // ===========================
-        const LANG = {
-            en: {
-                mainTitle: 'MCFA ACCOUNTS ⚡',
-                claimBtn: 'Claim MCFA Account 💎',
-                emailLabel: 'Email:',
-                passLabel: 'Password:',
-                copyBtn: '📋 Copy Account',
-                copyCopied: '✅ Copied!',
-                emptyMsg: '❌ No accounts available!',
-                availLabel: '🟢 Available',
-                claimedLabel: '🔵 Claimed',
-                totalLabel: '🟡 Total',
-                adminToggle: 'Admin',
-                adminTitle: '🛠️ Manage Accounts',
-                addBtn: 'Add Accounts',
-                clearBtn: 'Clear All',
-                stats: function(total, claimed) { return 'Accounts: ' + total + ' | Claimed: ' + claimed; },
-                pwTitle: '🔐 Admin Access',
-                pwConfirm: 'Unlock',
-                pwCancel: 'Cancel',
-                pwErrorWrong: '❌ Wrong password!',
-                pwPlaceholder: '••••••',
-                subLabel: 'subscribe to mostafa_pro',
-                subBtn: 'Subscribe',
-                noAccounts: '❌ No accounts available! Add accounts in admin panel.',
-                addSuccess: function(n) { return '✅ Added ' + n + ' accounts!'; },
-                clearConfirm: '⚠️ Are you sure you want to clear ALL accounts?',
-                clearDone: '🗑️ All accounts cleared.',
-                copySuccess: '✅ Copied to clipboard!',
-                copyFail: '❌ Failed to copy.',
-                claimSuccess: '🎉 Account claimed!',
-                noAvailable: '❌ No available accounts left!',
-                vpnDetected: '🚫 Please turn off your VPN to continue.',
-                checkingIp: '🔍 Checking your IP...',
-                cooldownMsg: function(mins, secs) { return '⏳ Please wait ' + mins + 'm ' + secs +
-                        's before claiming again.'; },
-                cooldownDone: '✅ Cooldown finished! You can claim now.',
-                ipError: '⚠️ Could not verify your IP. Please refresh and try again.',
-            },
-            ar: {
-                mainTitle: 'حسابات MCFA ⚡',
-                claimBtn: 'احصل على حساب MCFA 💎',
-                emailLabel: 'البريد الإلكتروني:',
-                passLabel: 'كلمة المرور:',
-                copyBtn: '📋 نسخ الحساب',
-                copyCopied: '✅ تم النسخ!',
-                emptyMsg: '❌ لا توجد حسابات متاحة!',
-                availLabel: '🟢 متاحة',
-                claimedLabel: '🔵 محجوزة',
-                totalLabel: '🟡 الإجمالي',
-                adminToggle: 'المشرف',
-                adminTitle: '🛠️ إدارة الحسابات',
-                addBtn: 'إضافة حسابات',
-                clearBtn: 'مسح الكل',
-                stats: function(total, claimed) { return 'الحسابات: ' + total + ' | المحجوزة: ' + claimed; },
-                pwTitle: '🔐 دخول المشرف',
-                pwConfirm: 'فتح',
-                pwCancel: 'إلغاء',
-                pwErrorWrong: '❌ كلمة مرور خاطئة!',
-                pwPlaceholder: '••••••',
-                subLabel: 'اشترك في mostafa_pro',
-                subBtn: 'اشترك',
-                noAccounts: '❌ لا توجد حسابات! أضف حسابات في لوحة المشرف.',
-                addSuccess: function(n) { return '✅ تم إضافة ' + n + ' حسابات!'; },
-                clearConfirm: '⚠️ هل أنت متأكد من مسح جميع الحسابات؟',
-                clearDone: '🗑️ تم مسح جميع الحسابات.',
-                copySuccess: '✅ تم النسخ إلى الحافظة!',
-                copyFail: '❌ فشل النسخ.',
-                claimSuccess: '🎉 تم الحصول على الحساب!',
-                noAvailable: '❌ لا توجد حسابات متاحة!',
-                vpnDetected: '🚫 يرجى إيقاف تشغيل VPN للمتابعة.',
-                checkingIp: '🔍 جاري التحقق من عنوان IP الخاص بك...',
-                cooldownMsg: function(mins, secs) { return '⏳ يرجى الانتظار ' + mins + ' د و ' + secs +
-                        ' ث قبل المطالبة مرة أخرى.'; },
-                cooldownDone: '✅ انتهت فترة الانتظار! يمكنك المطالبة الآن.',
-                ipError: '⚠️ تعذر التحقق من IP. يرجى التحديث والمحاولة مرة أخرى.',
-            }
-        };
-
-        let currentLang = 'en';
-
-        function setLang(lang) {
-            currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(function(b) {
-                b.classList.toggle('active', b.dataset.lang === lang);
-            });
-            var t = LANG[lang];
-            document.getElementById('mainTitle').textContent = t.mainTitle;
-            document.getElementById('claimBtn').textContent = t.claimBtn;
-            document.getElementById('emailLabel').textContent = t.emailLabel;
-            document.getElementById('passLabel').textContent = t.passLabel;
-            document.getElementById('copyBtn').textContent = t.copyBtn;
-            document.getElementById('emptyMsg').textContent = t.emptyMsg;
-            document.getElementById('availLabel').textContent = t.availLabel;
-            document.getElementById('claimedLabel').textContent = t.claimedLabel;
-            document.getElementById('totalLabel').textContent = t.totalLabel;
-            document.getElementById('adminToggleText').textContent = t.adminToggle;
-            document.getElementById('adminTitle').textContent = t.adminTitle;
-            document.getElementById('addBtnText').textContent = t.addBtn;
-            document.getElementById('clearBtnText').textContent = t.clearBtn;
-            document.getElementById('pwTitle').textContent = t.pwTitle;
-            document.getElementById('pwConfirmText').textContent = t.pwConfirm;
-            document.getElementById('pwCancelText').textContent = t.pwCancel;
-            document.getElementById('pwInput').placeholder = t.pwPlaceholder;
-            document.getElementById('subLabelText').textContent = t.subLabel;
-            document.getElementById('subBtnText').textContent = t.subBtn;
-
-            updateStats();
-
-            var copyBtn = document.getElementById('copyBtn');
-            if (copyBtn.classList.contains('copied')) {
-                copyBtn.textContent = t.copyCopied;
-            }
-
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-
-            var subPanel = document.getElementById('subscribePanel');
-            if (lang === 'ar') {
-                subPanel.style.right = 'auto';
-                subPanel.style.left = '0';
-                subPanel.style.borderRadius = '0 16px 16px 0';
-                subPanel.style.borderRight = '2px solid #ff0000';
-                subPanel.style.borderLeft = 'none';
-            } else {
-                subPanel.style.right = '0';
-                subPanel.style.left = 'auto';
-                subPanel.style.borderRadius = '16px 0 0 16px';
-                subPanel.style.borderRight = 'none';
-                subPanel.style.borderLeft = '2px solid #ff0000';
-            }
-
-            var adminPanel = document.getElementById('adminPanel');
-            var adminWrap = document.querySelector('.admin-panel-wrap');
-            if (lang === 'ar') {
-                adminPanel.style.right = 'auto';
-                adminPanel.style.left = '20px';
-                adminWrap.style.right = 'auto';
-                adminWrap.style.left = '20px';
-            } else {
-                adminPanel.style.right = '20px';
-                adminPanel.style.left = 'auto';
-                adminWrap.style.right = '20px';
-                adminWrap.style.left = 'auto';
-            }
-
-            // re-render status if visible
-            var msgEl = document.getElementById('statusMsg');
-            if (msgEl.classList.contains('active')) {
-                var type = msgEl.dataset.type;
-                if (type === 'vpn') {
-                    msgEl.textContent = t.vpnDetected;
-                } else if (type === 'cooldown') {
-                    // will be updated by timer
-                }
-            }
-        }
-
-        // ===========================
-        //  STORAGE
-        // ===========================
-        var accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
-        var claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
-
-        var COOLDOWN_MINUTES = 10;
-        var COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
-
-        function saveAccounts() {
-            localStorage.setItem('mfa_accounts', JSON.stringify(accounts));
-            localStorage.setItem('mfa_claimed', claimedCount.toString());
-            updateStats();
-        }
-
-        function updateStats() {
-            var total = accounts.length;
-            var available = accounts.filter(function(a) { return !a.claimed; }).length;
-
-            document.getElementById('availableCount').textContent = available;
-            document.getElementById('claimedCountDisplay').textContent = claimedCount;
-            document.getElementById('totalCount').textContent = total;
-
+    }
+
+    // ===========================
+    //  STORAGE
+    // ===========================
+    var accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
+    var claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
+
+    var COOLDOWN_MINUTES = 10;
+    var COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
+
+    function saveAccounts() {
+        localStorage.setItem('mfa_accounts', JSON.stringify(accounts));
+        localStorage.setItem('mfa_claimed', claimedCount.toString());
+        updateStats();
+    }
+
+    function updateStats() {
+        var total = accounts.length;
+        var available = accounts.filter(function(a) { return !a.claimed; }).length;
+
+        document.getElementById('availableCount').textContent = available;
+        document.getElementById('claimedCountDisplay').textContent = claimedCount;
+        document.getElementById('totalCount').textContent = total;
+
+        var t = LANG[currentLang];
+        document.getElementById('stats').textContent = t.stats(total, claimedCount);
+
+        var box = document.getElementById('availableBox');
+        box.classList.remove('warning', 'empty');
+        if (available === 0) box.classList.add('empty');
+        else if (available <= 3) box.classList.add('warning');
+
+        var emptyMsg = document.getElementById('emptyMsg');
+        if (available === 0 && total > 0) {
+            emptyMsg.textContent = t.noAccounts;
+            emptyMsg.classList.add('active');
+        } else if (total === 0) {
+            emptyMsg.textContent = t.noAccounts;
+            emptyMsg.classList.add('active');
+        } else {
+            emptyMsg.classList.remove('active');
+        }
+    }
+
+    // ===========================
+    //  IP & VPN DETECTION
+    // ===========================
+    var currentUserIP = null;
+    var isVPN = false;
+    var ipChecked = false;
+    var claimCooldownActive = false;
+    var cooldownTimerInterval = null;
+
+    function getCooldownKey(ip) {
+        return 'cooldown_' + ip;
+    }
+
+    function getCooldownRemaining(ip) {
+        var key = getCooldownKey(ip);
+        var stored = localStorage.getItem(key);
+        if (!stored) return 0;
+        var elapsed = Date.now() - parseInt(stored);
+        var remaining = COOLDOWN_MS - elapsed;
+        return remaining > 0 ? remaining : 0;
+    }
+
+    function setCooldown(ip) {
+        var key = getCooldownKey(ip);
+        localStorage.setItem(key, Date.now().toString());
+    }
+
+    function checkCooldownAndUpdateUI() {
+        if (!currentUserIP) return false;
+        var remaining = getCooldownRemaining(currentUserIP);
+        if (remaining > 0) {
+            claimCooldownActive = true;
             var t = LANG[currentLang];
-            document.getElementById('stats').textContent = t.stats(total, claimedCount);
-
-            var box = document.getElementById('availableBox');
-            box.classList.remove('warning', 'empty');
-            if (available === 0) box.classList.add('empty');
-            else if (available <= 3) box.classList.add('warning');
-
-            var emptyMsg = document.getElementById('emptyMsg');
-            if (available === 0 && total > 0) {
-                emptyMsg.textContent = t.noAccounts;
-                emptyMsg.classList.add('active');
-            } else if (total === 0) {
-                emptyMsg.textContent = t.noAccounts;
-                emptyMsg.classList.add('active');
-            } else {
-                emptyMsg.classList.remove('active');
+            var mins = Math.floor(remaining / 60000);
+            var secs = Math.floor((remaining % 60000) / 1000);
+            var msg = document.getElementById('statusMsg');
+            msg.textContent = t.cooldownMsg(mins, secs);
+            msg.className = 'status-msg active cooldown';
+            msg.dataset.type = 'cooldown';
+            document.getElementById('claimBtn').disabled = true;
+            if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
+            cooldownTimerInterval = setInterval(function() {
+                var rem = getCooldownRemaining(currentUserIP);
+                if (rem <= 0) {
+                    clearInterval(cooldownTimerInterval);
+                    cooldownTimerInterval = null;
+                    claimCooldownActive = false;
+                    document.getElementById('claimBtn').disabled = false;
+                    var msg2 = document.getElementById('statusMsg');
+                    msg2.textContent = t.cooldownDone;
+                    msg2.className = 'status-msg active';
+                    msg2.dataset.type = 'done';
+                    setTimeout(function() {
+                        if (document.getElementById('statusMsg').dataset.type === 'done') {
+                            document.getElementById('statusMsg').classList.remove('active');
+                        }
+                    }, 4000);
+                    updateStats();
+                } else {
+                    var m = Math.floor(rem / 60000);
+                    var s = Math.floor((rem % 60000) / 1000);
+                    var msg3 = document.getElementById('statusMsg');
+                    msg3.textContent = t.cooldownMsg(m, s);
+                }
+            }, 1000);
+            return true;
+        } else {
+            claimCooldownActive = false;
+            if (cooldownTimerInterval) {
+                clearInterval(cooldownTimerInterval);
+                cooldownTimerInterval = null;
             }
+            document.getElementById('claimBtn').disabled = false;
+            var msg = document.getElementById('statusMsg');
+            if (msg.dataset.type === 'cooldown' || msg.dataset.type === 'done') {
+                msg.classList.remove('active');
+            }
+            return false;
+        }
+    }
+
+    function checkVPNAndIP() {
+        var statusMsg = document.getElementById('statusMsg');
+        var t = LANG[currentLang];
+        statusMsg.textContent = t.checkingIp;
+        statusMsg.className = 'status-msg active';
+        statusMsg.dataset.type = 'loading';
+
+        fetch('https://ipapi.co/json/', {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function(data) {
+                console.log('IP API response:', data);
+                var ip = data.ip || null;
+                var isVpn = data.is_vpn === true || data.is_proxy === true || data.is_datacenter === true;
+
+                if (!ip) throw new Error('No IP returned');
+
+                currentUserIP = ip;
+                isVPN = isVpn;
+                ipChecked = true;
+
+                if (isVPN) {
+                    statusMsg.textContent = t.vpnDetected;
+                    statusMsg.className = 'status-msg active vpn';
+                    statusMsg.dataset.type = 'vpn';
+                    document.getElementById('claimBtn').disabled = true;
+                    return;
+                }
+
+                var cooldownActive = checkCooldownAndUpdateUI();
+                if (!cooldownActive) {
+                    statusMsg.classList.remove('active');
+                }
+                document.getElementById('claimBtn').disabled = false;
+            })
+            .catch(function(err) {
+                console.warn('IP API failed, using fallback fingerprint:', err);
+                var fallbackIP = 'fp_' + btoa(
+                    navigator.userAgent + navigator.language + screen.width + screen.height +
+                    (navigator.hardwareConcurrency || '') + (navigator.deviceMemory || '')
+                ).substring(0, 32);
+                currentUserIP = fallbackIP;
+                isVPN = false;
+                ipChecked = true;
+                statusMsg.textContent = t.ipError;
+                statusMsg.className = 'status-msg active';
+                statusMsg.dataset.type = 'error';
+                setTimeout(function() {
+                    if (document.getElementById('statusMsg').dataset.type === 'error') {
+                        document.getElementById('statusMsg').classList.remove('active');
+                    }
+                }, 5000);
+                var cooldownActive = checkCooldownAndUpdateUI();
+                if (!cooldownActive) {
+                    document.getElementById('statusMsg').classList.remove('active');
+                }
+                document.getElementById('claimBtn').disabled = false;
+            });
+    }
+
+    // ===========================
+    //  CLAIM
+    // ===========================
+    function claimAccount() {
+        var t = LANG[currentLang];
+        var display = document.getElementById('accountDisplay');
+        var emptyMsg = document.getElementById('emptyMsg');
+
+        if (!ipChecked) {
+            alert(t.checkingIp);
+            return;
         }
 
-        // ===========================
-        //  IP & VPN DETECTION
-        // ===========================
-        var currentUserIP = null;
-        var isVPN = false;
-        var ipChecked = false;
-        var claimCooldownActive = false;
-        var cooldownTimerInterval = null;
-
-        function getCooldownKey(ip) {
-            return 'cooldown_' + ip;
+        if (isVPN) {
+            var msg = document.getElementById('statusMsg');
+            msg.textContent = t.vpnDetected;
+            msg.className = 'status-msg active vpn';
+            msg.dataset.type = 'vpn';
+            return;
         }
 
-        function getCooldownRemaining(ip) {
-            var key = getCooldownKey(ip);
-            var stored = localStorage.getItem(key);
-            if (!stored) return 0;
-            var elapsed = Date.now() - parseInt(stored);
-            var remaining = COOLDOWN_MS - elapsed;
-            return remaining > 0 ? remaining : 0;
-        }
-
-        function setCooldown(ip) {
-            var key = getCooldownKey(ip);
-            localStorage.setItem(key, Date.now().toString());
-        }
-
-        function clearCooldown(ip) {
-            var key = getCooldownKey(ip);
-            localStorage.removeItem(key);
-        }
-
-        function checkCooldownAndUpdateUI() {
-            if (!currentUserIP) return false;
+        if (currentUserIP) {
             var remaining = getCooldownRemaining(currentUserIP);
             if (remaining > 0) {
-                claimCooldownActive = true;
-                var t = LANG[currentLang];
                 var mins = Math.floor(remaining / 60000);
                 var secs = Math.floor((remaining % 60000) / 1000);
                 var msg = document.getElementById('statusMsg');
@@ -1259,417 +398,276 @@
                         msg3.textContent = t.cooldownMsg(m, s);
                     }
                 }, 1000);
-                return true;
-            } else {
-                claimCooldownActive = false;
-                if (cooldownTimerInterval) {
+                return;
+            }
+        }
+
+        var unclaimedIdx = -1;
+        for (var i = 0; i < accounts.length; i++) {
+            if (!accounts[i].claimed) {
+                unclaimedIdx = i;
+                break;
+            }
+        }
+
+        if (unclaimedIdx === -1) {
+            display.classList.remove('active');
+            emptyMsg.textContent = t.noAvailable;
+            emptyMsg.classList.add('active');
+            setTimeout(function() {
+                if (accounts.filter(function(a) { return !a.claimed; }).length === 0) {
+                    emptyMsg.textContent = t.noAccounts;
+                }
+            }, 3000);
+            return;
+        }
+
+        accounts[unclaimedIdx].claimed = true;
+        claimedCount++;
+        saveAccounts();
+
+        if (currentUserIP) {
+            setCooldown(currentUserIP);
+            claimCooldownActive = true;
+            document.getElementById('claimBtn').disabled = true;
+            var msg = document.getElementById('statusMsg');
+            msg.dataset.type = 'cooldown';
+            if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
+            cooldownTimerInterval = setInterval(function() {
+                var rem = getCooldownRemaining(currentUserIP);
+                if (rem <= 0) {
                     clearInterval(cooldownTimerInterval);
                     cooldownTimerInterval = null;
-                }
-                document.getElementById('claimBtn').disabled = false;
-                var msg = document.getElementById('statusMsg');
-                if (msg.dataset.type === 'cooldown' || msg.dataset.type === 'done') {
-                    msg.classList.remove('active');
-                }
-                return false;
-            }
-        }
-
-        function checkVPNAndIP() {
-            var statusMsg = document.getElementById('statusMsg');
-            var t = LANG[currentLang];
-            statusMsg.textContent = t.checkingIp;
-            statusMsg.className = 'status-msg active';
-            statusMsg.dataset.type = 'loading';
-
-            fetch('https://ipapi.co/json/', {
-                    headers: { 'Accept': 'application/json' }
-                })
-                .then(function(res) {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    return res.json();
-                })
-                .then(function(data) {
-                    console.log('IP API response:', data);
-                    var ip = data.ip || null;
-                    var isVpn = data.is_vpn === true || data.is_proxy === true || data.is_datacenter === true;
-
-                    if (!ip) throw new Error('No IP returned');
-
-                    currentUserIP = ip;
-                    isVPN = isVpn;
-                    ipChecked = true;
-
-                    if (isVPN) {
-                        statusMsg.textContent = t.vpnDetected;
-                        statusMsg.className = 'status-msg active vpn';
-                        statusMsg.dataset.type = 'vpn';
-                        document.getElementById('claimBtn').disabled = true;
-                        return;
-                    }
-
-                    var cooldownActive = checkCooldownAndUpdateUI();
-                    if (!cooldownActive) {
-                        statusMsg.classList.remove('active');
-                    }
+                    claimCooldownActive = false;
                     document.getElementById('claimBtn').disabled = false;
-                })
-                .catch(function(err) {
-                    console.warn('IP API failed, using fallback fingerprint:', err);
-                    var fallbackIP = 'fp_' + btoa(
-                        navigator.userAgent + navigator.language + screen.width + screen.height +
-                        (navigator.hardwareConcurrency || '') + (navigator.deviceMemory || '')
-                    ).substring(0, 32);
-                    currentUserIP = fallbackIP;
-                    isVPN = false;
-                    ipChecked = true;
-                    statusMsg.textContent = t.ipError;
-                    statusMsg.className = 'status-msg active';
-                    statusMsg.dataset.type = 'error';
+                    var msg2 = document.getElementById('statusMsg');
+                    msg2.textContent = LANG[currentLang].cooldownDone;
+                    msg2.className = 'status-msg active';
+                    msg2.dataset.type = 'done';
                     setTimeout(function() {
-                        if (document.getElementById('statusMsg').dataset.type === 'error') {
+                        if (document.getElementById('statusMsg').dataset.type === 'done') {
                             document.getElementById('statusMsg').classList.remove('active');
                         }
-                    }, 5000);
-                    var cooldownActive = checkCooldownAndUpdateUI();
-                    if (!cooldownActive) {
-                        document.getElementById('statusMsg').classList.remove('active');
-                    }
-                    document.getElementById('claimBtn').disabled = false;
-                });
+                    }, 4000);
+                    updateStats();
+                } else {
+                    var m = Math.floor(rem / 60000);
+                    var s = Math.floor((rem % 60000) / 1000);
+                    var msg3 = document.getElementById('statusMsg');
+                    msg3.textContent = LANG[currentLang].cooldownMsg(m, s);
+                    msg3.className = 'status-msg active cooldown';
+                    msg3.dataset.type = 'cooldown';
+                }
+            }, 1000);
         }
 
-        // ===========================
-        //  CLAIM
-        // ===========================
-        function claimAccount() {
-            var t = LANG[currentLang];
-            var display = document.getElementById('accountDisplay');
-            var emptyMsg = document.getElementById('emptyMsg');
+        var acc = accounts[unclaimedIdx];
+        document.getElementById('emailValue').textContent = acc.email;
+        document.getElementById('passwordValue').textContent = acc.password;
 
-            if (!ipChecked) {
-                alert(t.checkingIp);
-                return;
-            }
+        emptyMsg.classList.remove('active');
+        display.classList.add('active');
 
-            if (isVPN) {
-                var msg = document.getElementById('statusMsg');
-                msg.textContent = t.vpnDetected;
-                msg.className = 'status-msg active vpn';
-                msg.dataset.type = 'vpn';
-                return;
-            }
+        var copyBtn = document.getElementById('copyBtn');
+        copyBtn.textContent = t.copyBtn;
+        copyBtn.classList.remove('copied');
 
-            if (currentUserIP) {
-                var remaining = getCooldownRemaining(currentUserIP);
-                if (remaining > 0) {
-                    var mins = Math.floor(remaining / 60000);
-                    var secs = Math.floor((remaining % 60000) / 1000);
-                    var msg = document.getElementById('statusMsg');
-                    msg.textContent = t.cooldownMsg(mins, secs);
-                    msg.className = 'status-msg active cooldown';
-                    msg.dataset.type = 'cooldown';
-                    document.getElementById('claimBtn').disabled = true;
-                    if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                    cooldownTimerInterval = setInterval(function() {
-                        var rem = getCooldownRemaining(currentUserIP);
-                        if (rem <= 0) {
-                            clearInterval(cooldownTimerInterval);
-                            cooldownTimerInterval = null;
-                            claimCooldownActive = false;
-                            document.getElementById('claimBtn').disabled = false;
-                            var msg2 = document.getElementById('statusMsg');
-                            msg2.textContent = t.cooldownDone;
-                            msg2.className = 'status-msg active';
-                            msg2.dataset.type = 'done';
-                            setTimeout(function() {
-                                if (document.getElementById('statusMsg').dataset.type === 'done') {
-                                    document.getElementById('statusMsg').classList.remove('active');
-                                }
-                            }, 4000);
-                            updateStats();
-                        } else {
-                            var m = Math.floor(rem / 60000);
-                            var s = Math.floor((rem % 60000) / 1000);
-                            var msg3 = document.getElementById('statusMsg');
-                            msg3.textContent = t.cooldownMsg(m, s);
-                        }
-                    }, 1000);
-                    return;
-                }
-            }
+        var orig = document.getElementById('claimBtn').textContent;
+        document.getElementById('claimBtn').textContent = t.claimSuccess;
+        setTimeout(function() {
+            document.getElementById('claimBtn').textContent = orig;
+        }, 1500);
 
-            var unclaimedIdx = -1;
-            for (var i = 0; i < accounts.length; i++) {
-                if (!accounts[i].claimed) {
-                    unclaimedIdx = i;
-                    break;
-                }
-            }
+        updateStats();
+    }
 
-            if (unclaimedIdx === -1) {
-                display.classList.remove('active');
-                emptyMsg.textContent = t.noAvailable;
-                emptyMsg.classList.add('active');
-                setTimeout(function() {
-                    if (accounts.filter(function(a) { return !a.claimed; }).length === 0) {
-                        emptyMsg.textContent = t.noAccounts;
-                    }
-                }, 3000);
-                return;
-            }
+    // ===========================
+    //  COPY
+    // ===========================
+    function copyAccount() {
+        var t = LANG[currentLang];
+        var email = document.getElementById('emailValue').textContent;
+        var password = document.getElementById('passwordValue').textContent;
+        var text = 'Email: ' + email + '\nPassword: ' + password;
 
-            accounts[unclaimedIdx].claimed = true;
-            claimedCount++;
-            saveAccounts();
-
-            if (currentUserIP) {
-                setCooldown(currentUserIP);
-                claimCooldownActive = true;
-                document.getElementById('claimBtn').disabled = true;
-                var msg = document.getElementById('statusMsg');
-                msg.dataset.type = 'cooldown';
-                if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                cooldownTimerInterval = setInterval(function() {
-                    var rem = getCooldownRemaining(currentUserIP);
-                    if (rem <= 0) {
-                        clearInterval(cooldownTimerInterval);
-                        cooldownTimerInterval = null;
-                        claimCooldownActive = false;
-                        document.getElementById('claimBtn').disabled = false;
-                        var msg2 = document.getElementById('statusMsg');
-                        msg2.textContent = LANG[currentLang].cooldownDone;
-                        msg2.className = 'status-msg active';
-                        msg2.dataset.type = 'done';
-                        setTimeout(function() {
-                            if (document.getElementById('statusMsg').dataset.type === 'done') {
-                                document.getElementById('statusMsg').classList.remove('active');
-                            }
-                        }, 4000);
-                        updateStats();
-                    } else {
-                        var m = Math.floor(rem / 60000);
-                        var s = Math.floor((rem % 60000) / 1000);
-                        var msg3 = document.getElementById('statusMsg');
-                        msg3.textContent = LANG[currentLang].cooldownMsg(m, s);
-                        msg3.className = 'status-msg active cooldown';
-                        msg3.dataset.type = 'cooldown';
-                    }
-                }, 1000);
-            }
-
-            var acc = accounts[unclaimedIdx];
-            document.getElementById('emailValue').textContent = acc.email;
-            document.getElementById('passwordValue').textContent = acc.password;
-
-            emptyMsg.classList.remove('active');
-            display.classList.add('active');
-
-            var copyBtn = document.getElementById('copyBtn');
-            copyBtn.textContent = t.copyBtn;
-            copyBtn.classList.remove('copied');
-
-            var orig = document.getElementById('claimBtn').textContent;
-            document.getElementById('claimBtn').textContent = t.claimSuccess;
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('copyBtn');
+            btn.textContent = t.copyCopied;
+            btn.classList.add('copied');
             setTimeout(function() {
-                document.getElementById('claimBtn').textContent = orig;
+                btn.textContent = t.copyBtn;
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(function() {
+            var btn = document.getElementById('copyBtn');
+            btn.textContent = t.copyFail;
+            setTimeout(function() {
+                btn.textContent = t.copyBtn;
             }, 1500);
+        });
+    }
 
+    // ===========================
+    //  PASSWORD MODAL
+    // ===========================
+    var ADMIN_PASSWORD = '123321';
+
+    function openPasswordModal() {
+        document.getElementById('passwordOverlay').classList.add('active');
+        document.getElementById('pwInput').value = '';
+        document.getElementById('pwError').textContent = '';
+        setTimeout(function() { document.getElementById('pwInput').focus(); }, 100);
+    }
+
+    function closePasswordModal() {
+        document.getElementById('passwordOverlay').classList.remove('active');
+        document.getElementById('pwError').textContent = '';
+    }
+
+    function verifyPassword() {
+        var input = document.getElementById('pwInput').value.trim();
+        var t = LANG[currentLang];
+        if (input === ADMIN_PASSWORD) {
+            closePasswordModal();
+            document.getElementById('adminPanel').classList.add('active');
+            var ta = document.getElementById('bulkInput');
+            if (!ta.value.trim()) {
+                ta.placeholder = currentLang === 'ar' ?
+                    'الصق الحسابات بهذا الشكل:\nemail:pass\nemail:pass' :
+                    'Paste accounts in format:\nemail:pass\nemail:pass';
+            }
             updateStats();
-        }
-
-        // ===========================
-        //  COPY
-        // ===========================
-        function copyAccount() {
-            var t = LANG[currentLang];
-            var email = document.getElementById('emailValue').textContent;
-            var password = document.getElementById('passwordValue').textContent;
-            var text = 'Email: ' + email + '\nPassword: ' + password;
-
-            navigator.clipboard.writeText(text).then(function() {
-                var btn = document.getElementById('copyBtn');
-                btn.textContent = t.copyCopied;
-                btn.classList.add('copied');
-                setTimeout(function() {
-                    btn.textContent = t.copyBtn;
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(function() {
-                var btn = document.getElementById('copyBtn');
-                btn.textContent = t.copyFail;
-                setTimeout(function() {
-                    btn.textContent = t.copyBtn;
-                }, 1500);
-            });
-        }
-
-        // ===========================
-        //  PASSWORD MODAL
-        // ===========================
-        var ADMIN_PASSWORD = '123321';
-
-        function openPasswordModal() {
-            document.getElementById('passwordOverlay').classList.add('active');
+        } else {
+            document.getElementById('pwError').textContent = t.pwErrorWrong;
             document.getElementById('pwInput').value = '';
-            document.getElementById('pwError').textContent = '';
-            setTimeout(function() { document.getElementById('pwInput').focus(); }, 100);
+            document.getElementById('pwInput').focus();
         }
+    }
 
-        function closePasswordModal() {
-            document.getElementById('passwordOverlay').classList.remove('active');
-            document.getElementById('pwError').textContent = '';
-        }
+    document.getElementById('pwInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') verifyPassword();
+        if (e.key === 'Escape') closePasswordModal();
+    });
 
-        function verifyPassword() {
-            var input = document.getElementById('pwInput').value.trim();
-            var t = LANG[currentLang];
-            if (input === ADMIN_PASSWORD) {
-                closePasswordModal();
-                document.getElementById('adminPanel').classList.add('active');
-                var ta = document.getElementById('bulkInput');
-                if (!ta.value.trim()) {
-                    ta.placeholder = currentLang === 'ar' ?
-                        'الصق الحسابات بهذا الشكل:\nemail:pass\nemail:pass' :
-                        'Paste accounts in format:\nemail:pass\nemail:pass';
-                }
-                updateStats();
-            } else {
-                document.getElementById('pwError').textContent = t.pwErrorWrong;
-                document.getElementById('pwInput').value = '';
-                document.getElementById('pwInput').focus();
-            }
-        }
+    document.getElementById('passwordOverlay').addEventListener('click', function(e) {
+        if (e.target === e.currentTarget) closePasswordModal();
+    });
 
-        document.getElementById('pwInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') verifyPassword();
-            if (e.key === 'Escape') closePasswordModal();
-        });
+    // ===========================
+    //  ADMIN: ADD ACCOUNTS
+    // ===========================
+    function addAccounts() {
+        var t = LANG[currentLang];
+        var input = document.getElementById('bulkInput').value.trim();
+        if (!input) return;
 
-        document.getElementById('passwordOverlay').addEventListener('click', function(e) {
-            if (e.target === e.currentTarget) closePasswordModal();
-        });
+        var lines = input.split('\n');
+        var added = 0;
 
-        // ===========================
-        //  ADMIN: ADD ACCOUNTS
-        // ===========================
-        function addAccounts() {
-            var t = LANG[currentLang];
-            var input = document.getElementById('bulkInput').value.trim();
-            if (!input) return;
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line) continue;
+            var parts;
+            if (line.indexOf(':') !== -1) parts = line.split(':');
+            else if (line.indexOf('|') !== -1) parts = line.split('|');
+            else parts = line.split(/\s+/);
 
-            var lines = input.split('\n');
-            var added = 0;
-
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                if (!line) continue;
-                var parts;
-                if (line.indexOf(':') !== -1) parts = line.split(':');
-                else if (line.indexOf('|') !== -1) parts = line.split('|');
-                else parts = line.split(/\s+/);
-
-                if (parts.length >= 2) {
-                    var email = parts[0].trim();
-                    var password = parts.slice(1).join(':').trim();
-                    if (email && password) {
-                        accounts.push({ email: email, password: password, claimed: false });
-                        added++;
-                    }
+            if (parts.length >= 2) {
+                var email = parts[0].trim();
+                var password = parts.slice(1).join(':').trim();
+                if (email && password) {
+                    accounts.push({ email: email, password: password, claimed: false });
+                    added++;
                 }
             }
-
-            if (added > 0) {
-                saveAccounts();
-                document.getElementById('bulkInput').value = '';
-                alert(t.addSuccess(added));
-                document.getElementById('adminPanel').classList.add('active');
-            }
         }
 
-        // ===========================
-        //  ADMIN: CLEAR ALL
-        // ===========================
-        function clearAccounts() {
-            var t = LANG[currentLang];
-            if (!confirm(t.clearConfirm)) return;
-            accounts = [];
-            claimedCount = 0;
+        if (added > 0) {
             saveAccounts();
-            document.getElementById('accountDisplay').classList.remove('active');
-            alert(t.clearDone);
+            document.getElementById('bulkInput').value = '';
+            alert(t.addSuccess(added));
+            document.getElementById('adminPanel').classList.add('active');
         }
+    }
 
-        // ===========================
-        //  PARTICLES
-        // ===========================
-        function createParticles() {
-            var container = document.getElementById('particles');
-            for (var i = 0; i < 45; i++) {
-                var p = document.createElement('div');
-                p.className = 'particle';
-                p.style.left = Math.random() * 100 + '%';
-                p.style.animationDelay = Math.random() * 12 + 's';
-                p.style.animationDuration = (6 + Math.random() * 10) + 's';
-                p.style.width = (1 + Math.random() * 3) + 'px';
-                p.style.height = p.style.width;
-                container.appendChild(p);
+    // ===========================
+    //  ADMIN: CLEAR ALL
+    // ===========================
+    function clearAccounts() {
+        var t = LANG[currentLang];
+        if (!confirm(t.clearConfirm)) return;
+        accounts = [];
+        claimedCount = 0;
+        saveAccounts();
+        document.getElementById('accountDisplay').classList.remove('active');
+        alert(t.clearDone);
+    }
+
+    // ===========================
+    //  PARTICLES
+    // ===========================
+    function createParticles() {
+        var container = document.getElementById('particles');
+        for (var i = 0; i < 45; i++) {
+            var p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 12 + 's';
+            p.style.animationDuration = (6 + Math.random() * 10) + 's';
+            p.style.width = (1 + Math.random() * 3) + 'px';
+            p.style.height = p.style.width;
+            container.appendChild(p);
+        }
+    }
+
+    // ===========================
+    //  INIT
+    // ===========================
+    createParticles();
+
+    if (accounts.length === 0) {
+        accounts = [
+            { email: 'demo1@mcfa.com', password: 'pass123', claimed: false },
+            { email: 'demo2@mcfa.com', password: 'pass456', claimed: false },
+            { email: 'demo3@mcfa.com', password: 'pass789', claimed: false },
+        ];
+        saveAccounts();
+    }
+
+    var actualClaimed = 0;
+    for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].claimed) actualClaimed++;
+    }
+    if (actualClaimed !== claimedCount) {
+        claimedCount = actualClaimed;
+        saveAccounts();
+    }
+
+    setLang('en');
+
+    checkVPNAndIP();
+
+    document.addEventListener('click', function(e) {
+        var panel = document.getElementById('adminPanel');
+        var toggle = document.getElementById('adminToggleBtn');
+        if (panel.classList.contains('active')) {
+            if (!panel.contains(e.target) && !toggle.contains(e.target) &&
+                !document.getElementById('passwordOverlay').classList.contains('active')) {
+                // keep open – no action
             }
         }
+    });
 
-        // ===========================
-        //  INIT
-        // ===========================
-        createParticles();
-
-        if (accounts.length === 0) {
-            accounts = [
-                { email: 'demo1@mcfa.com', password: 'pass123', claimed: false },
-                { email: 'demo2@mcfa.com', password: 'pass456', claimed: false },
-                { email: 'demo3@mcfa.com', password: 'pass789', claimed: false },
-            ];
-            saveAccounts();
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('adminPanel').classList.remove('active');
+            closePasswordModal();
         }
+    });
 
-        var actualClaimed = 0;
-        for (var i = 0; i < accounts.length; i++) {
-            if (accounts[i].claimed) actualClaimed++;
-        }
-        if (actualClaimed !== claimedCount) {
-            claimedCount = actualClaimed;
-            saveAccounts();
-        }
-
-        setLang('en');
-
-        checkVPNAndIP();
-
-        document.addEventListener('click', function(e) {
-            var panel = document.getElementById('adminPanel');
-            var toggle = document.getElementById('adminToggleBtn');
-            if (panel.classList.contains('active')) {
-                if (!panel.contains(e.target) && !toggle.contains(e.target) &&
-                    !document.getElementById('passwordOverlay').classList.contains('active')) {
-                    if (!e.target.closest('.admin-panel') && !e.target.closest('.admin-toggle') &&
-                        !e.target.closest('.password-overlay')) {
-                        // keep open
-                    }
-                }
-            }
-        });
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.getElementById('adminPanel').classList.remove('active');
-                closePasswordModal();
-            }
-        });
-
-        console.log('🚀 MCFA Accounts loaded successfully!');
-        console.log('🔑 Admin password: 123321');
-        console.log('⏳ Cooldown: 10 minutes per IP');
-        console.log('📊 Total accounts:', accounts.length);
-        console.log('🛡️ VPN detection enabled via ipapi.co');
-    </script>
-</body>
-</html>
+    console.log('🚀 MCFA Accounts loaded successfully!');
+    console.log('🔑 Admin password: 123321');
+    console.log('⏳ Cooldown: 10 minutes per IP');
+    console.log('📊 Total accounts:', accounts.length);
+    console.log('🛡️ VPN detection enabled via ipapi.co');
+</script>
