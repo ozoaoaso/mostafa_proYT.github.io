@@ -984,7 +984,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== JAVASCRIPT ===== -->
+    <!-- ===== JAVASCRIPT (EMBEDDED – NO EXTERNAL FILE) ===== -->
     <script>
         // ===========================
         //  LANGUAGE SYSTEM
@@ -1005,7 +1005,7 @@
                 adminTitle: '🛠️ Manage Accounts',
                 addBtn: 'Add Accounts',
                 clearBtn: 'Clear All',
-                stats: (total, claimed) => `Accounts: ${total} | Claimed: ${claimed}`,
+                stats: function(total, claimed) { return 'Accounts: ' + total + ' | Claimed: ' + claimed; },
                 pwTitle: '🔐 Admin Access',
                 pwConfirm: 'Unlock',
                 pwCancel: 'Cancel',
@@ -1014,7 +1014,7 @@
                 subLabel: 'subscribe to mostafa_pro',
                 subBtn: 'Subscribe',
                 noAccounts: '❌ No accounts available! Add accounts in admin panel.',
-                addSuccess: (n) => `✅ Added ${n} accounts!`,
+                addSuccess: function(n) { return '✅ Added ' + n + ' accounts!'; },
                 clearConfirm: '⚠️ Are you sure you want to clear ALL accounts?',
                 clearDone: '🗑️ All accounts cleared.',
                 copySuccess: '✅ Copied to clipboard!',
@@ -1023,7 +1023,8 @@
                 noAvailable: '❌ No available accounts left!',
                 vpnDetected: '🚫 Please turn off your VPN to continue.',
                 checkingIp: '🔍 Checking your IP...',
-                cooldownMsg: (mins, secs) => `⏳ Please wait ${mins}m ${secs}s before claiming again.`,
+                cooldownMsg: function(mins, secs) { return '⏳ Please wait ' + mins + 'm ' + secs +
+                        's before claiming again.'; },
                 cooldownDone: '✅ Cooldown finished! You can claim now.',
                 ipError: '⚠️ Could not verify your IP. Please refresh and try again.',
             },
@@ -1042,7 +1043,7 @@
                 adminTitle: '🛠️ إدارة الحسابات',
                 addBtn: 'إضافة حسابات',
                 clearBtn: 'مسح الكل',
-                stats: (total, claimed) => `الحسابات: ${total} | المحجوزة: ${claimed}`,
+                stats: function(total, claimed) { return 'الحسابات: ' + total + ' | المحجوزة: ' + claimed; },
                 pwTitle: '🔐 دخول المشرف',
                 pwConfirm: 'فتح',
                 pwCancel: 'إلغاء',
@@ -1051,7 +1052,7 @@
                 subLabel: 'اشترك في mostafa_pro',
                 subBtn: 'اشترك',
                 noAccounts: '❌ لا توجد حسابات! أضف حسابات في لوحة المشرف.',
-                addSuccess: (n) => `✅ تم إضافة ${n} حسابات!`,
+                addSuccess: function(n) { return '✅ تم إضافة ' + n + ' حسابات!'; },
                 clearConfirm: '⚠️ هل أنت متأكد من مسح جميع الحسابات؟',
                 clearDone: '🗑️ تم مسح جميع الحسابات.',
                 copySuccess: '✅ تم النسخ إلى الحافظة!',
@@ -1060,7 +1061,8 @@
                 noAvailable: '❌ لا توجد حسابات متاحة!',
                 vpnDetected: '🚫 يرجى إيقاف تشغيل VPN للمتابعة.',
                 checkingIp: '🔍 جاري التحقق من عنوان IP الخاص بك...',
-                cooldownMsg: (mins, secs) => `⏳ يرجى الانتظار ${mins} د و ${secs} ث قبل المطالبة مرة أخرى.`,
+                cooldownMsg: function(mins, secs) { return '⏳ يرجى الانتظار ' + mins + ' د و ' + secs +
+                        ' ث قبل المطالبة مرة أخرى.'; },
                 cooldownDone: '✅ انتهت فترة الانتظار! يمكنك المطالبة الآن.',
                 ipError: '⚠️ تعذر التحقق من IP. يرجى التحديث والمحاولة مرة أخرى.',
             }
@@ -1070,10 +1072,10 @@
 
         function setLang(lang) {
             currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(b => {
+            document.querySelectorAll('.lang-btn').forEach(function(b) {
                 b.classList.toggle('active', b.dataset.lang === lang);
             });
-            const t = LANG[lang];
+            var t = LANG[lang];
             document.getElementById('mainTitle').textContent = t.mainTitle;
             document.getElementById('claimBtn').textContent = t.claimBtn;
             document.getElementById('emailLabel').textContent = t.emailLabel;
@@ -1095,13 +1097,15 @@
             document.getElementById('subBtnText').textContent = t.subBtn;
 
             updateStats();
-            const copyBtn = document.getElementById('copyBtn');
+
+            var copyBtn = document.getElementById('copyBtn');
             if (copyBtn.classList.contains('copied')) {
                 copyBtn.textContent = t.copyCopied;
             }
 
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            const subPanel = document.getElementById('subscribePanel');
+
+            var subPanel = document.getElementById('subscribePanel');
             if (lang === 'ar') {
                 subPanel.style.right = 'auto';
                 subPanel.style.left = '0';
@@ -1116,8 +1120,8 @@
                 subPanel.style.borderLeft = '2px solid #ff0000';
             }
 
-            const adminPanel = document.getElementById('adminPanel');
-            const adminWrap = document.querySelector('.admin-panel-wrap');
+            var adminPanel = document.getElementById('adminPanel');
+            var adminWrap = document.querySelector('.admin-panel-wrap');
             if (lang === 'ar') {
                 adminPanel.style.right = 'auto';
                 adminPanel.style.left = '20px';
@@ -1131,11 +1135,12 @@
             }
 
             // re-render status if visible
-            if (document.getElementById('statusMsg').classList.contains('active')) {
-                const msg = document.getElementById('statusMsg');
-                if (msg.dataset.type === 'vpn') {
-                    msg.textContent = t.vpnDetected;
-                } else if (msg.dataset.type === 'cooldown') {
+            var msgEl = document.getElementById('statusMsg');
+            if (msgEl.classList.contains('active')) {
+                var type = msgEl.dataset.type;
+                if (type === 'vpn') {
+                    msgEl.textContent = t.vpnDetected;
+                } else if (type === 'cooldown') {
                     // will be updated by timer
                 }
             }
@@ -1144,12 +1149,11 @@
         // ===========================
         //  STORAGE
         // ===========================
-        let accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
-        let claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
+        var accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
+        var claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
 
-        // Cooldown storage: key = "cooldown_" + IP, value = timestamp (ms)
-        const COOLDOWN_MINUTES = 10;
-        const COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
+        var COOLDOWN_MINUTES = 10;
+        var COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
 
         function saveAccounts() {
             localStorage.setItem('mfa_accounts', JSON.stringify(accounts));
@@ -1158,22 +1162,22 @@
         }
 
         function updateStats() {
-            const total = accounts.length;
-            const available = accounts.filter(a => !a.claimed).length;
+            var total = accounts.length;
+            var available = accounts.filter(function(a) { return !a.claimed; }).length;
 
             document.getElementById('availableCount').textContent = available;
             document.getElementById('claimedCountDisplay').textContent = claimedCount;
             document.getElementById('totalCount').textContent = total;
 
-            const t = LANG[currentLang];
+            var t = LANG[currentLang];
             document.getElementById('stats').textContent = t.stats(total, claimedCount);
 
-            const box = document.getElementById('availableBox');
+            var box = document.getElementById('availableBox');
             box.classList.remove('warning', 'empty');
             if (available === 0) box.classList.add('empty');
             else if (available <= 3) box.classList.add('warning');
 
-            const emptyMsg = document.getElementById('emptyMsg');
+            var emptyMsg = document.getElementById('emptyMsg');
             if (available === 0 && total > 0) {
                 emptyMsg.textContent = t.noAccounts;
                 emptyMsg.classList.add('active');
@@ -1188,71 +1192,70 @@
         // ===========================
         //  IP & VPN DETECTION
         // ===========================
-        let currentUserIP = null;
-        let isVPN = false;
-        let ipChecked = false;
-        let claimCooldownActive = false;
-        let cooldownTimerInterval = null;
+        var currentUserIP = null;
+        var isVPN = false;
+        var ipChecked = false;
+        var claimCooldownActive = false;
+        var cooldownTimerInterval = null;
 
         function getCooldownKey(ip) {
             return 'cooldown_' + ip;
         }
 
         function getCooldownRemaining(ip) {
-            const key = getCooldownKey(ip);
-            const stored = localStorage.getItem(key);
+            var key = getCooldownKey(ip);
+            var stored = localStorage.getItem(key);
             if (!stored) return 0;
-            const elapsed = Date.now() - parseInt(stored);
-            const remaining = COOLDOWN_MS - elapsed;
+            var elapsed = Date.now() - parseInt(stored);
+            var remaining = COOLDOWN_MS - elapsed;
             return remaining > 0 ? remaining : 0;
         }
 
         function setCooldown(ip) {
-            const key = getCooldownKey(ip);
+            var key = getCooldownKey(ip);
             localStorage.setItem(key, Date.now().toString());
         }
 
         function clearCooldown(ip) {
-            const key = getCooldownKey(ip);
+            var key = getCooldownKey(ip);
             localStorage.removeItem(key);
         }
 
         function checkCooldownAndUpdateUI() {
             if (!currentUserIP) return false;
-            const remaining = getCooldownRemaining(currentUserIP);
+            var remaining = getCooldownRemaining(currentUserIP);
             if (remaining > 0) {
                 claimCooldownActive = true;
-                const t = LANG[currentLang];
-                const mins = Math.floor(remaining / 60000);
-                const secs = Math.floor((remaining % 60000) / 1000);
-                const msg = document.getElementById('statusMsg');
+                var t = LANG[currentLang];
+                var mins = Math.floor(remaining / 60000);
+                var secs = Math.floor((remaining % 60000) / 1000);
+                var msg = document.getElementById('statusMsg');
                 msg.textContent = t.cooldownMsg(mins, secs);
                 msg.className = 'status-msg active cooldown';
                 msg.dataset.type = 'cooldown';
                 document.getElementById('claimBtn').disabled = true;
-                // start timer
                 if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                cooldownTimerInterval = setInterval(() => {
-                    const rem = getCooldownRemaining(currentUserIP);
+                cooldownTimerInterval = setInterval(function() {
+                    var rem = getCooldownRemaining(currentUserIP);
                     if (rem <= 0) {
                         clearInterval(cooldownTimerInterval);
                         cooldownTimerInterval = null;
                         claimCooldownActive = false;
                         document.getElementById('claimBtn').disabled = false;
-                        const msg2 = document.getElementById('statusMsg');
+                        var msg2 = document.getElementById('statusMsg');
                         msg2.textContent = t.cooldownDone;
                         msg2.className = 'status-msg active';
                         msg2.dataset.type = 'done';
-                        setTimeout(() => {
+                        setTimeout(function() {
                             if (document.getElementById('statusMsg').dataset.type === 'done') {
                                 document.getElementById('statusMsg').classList.remove('active');
                             }
                         }, 4000);
                         updateStats();
                     } else {
-                        const m = Math.floor(rem / 60000);
-                        const s = Math.floor((rem % 60000) / 1000);
-                        const msg3 = document.getElementById('statusMsg');
+                        var m = Math.floor(rem / 60000);
+                        var s = Math.floor((rem % 60000) / 1000);
+                        var msg3 = document.getElementById('statusMsg');
                         msg3.textContent = t.cooldownMsg(m, s);
                     }
                 }, 1000);
@@ -1264,7 +1267,7 @@
                     cooldownTimerInterval = null;
                 }
                 document.getElementById('claimBtn').disabled = false;
-                const msg = document.getElementById('statusMsg');
+                var msg = document.getElementById('statusMsg');
                 if (msg.dataset.type === 'cooldown' || msg.dataset.type === 'done') {
                     msg.classList.remove('active');
                 }
@@ -1273,24 +1276,23 @@
         }
 
         function checkVPNAndIP() {
-            const statusMsg = document.getElementById('statusMsg');
-            const t = LANG[currentLang];
+            var statusMsg = document.getElementById('statusMsg');
+            var t = LANG[currentLang];
             statusMsg.textContent = t.checkingIp;
             statusMsg.className = 'status-msg active';
             statusMsg.dataset.type = 'loading';
 
-            // Use ipapi.co for IP + VPN detection (CORS supported)
             fetch('https://ipapi.co/json/', {
                     headers: { 'Accept': 'application/json' }
                 })
-                .then(res => {
+                .then(function(res) {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.json();
                 })
-                .then(data => {
+                .then(function(data) {
                     console.log('IP API response:', data);
-                    const ip = data.ip || null;
-                    const isVpn = data.is_vpn === true || data.is_proxy === true || data.is_datacenter === true;
+                    var ip = data.ip || null;
+                    var isVpn = data.is_vpn === true || data.is_proxy === true || data.is_datacenter === true;
 
                     if (!ip) throw new Error('No IP returned');
 
@@ -1306,17 +1308,15 @@
                         return;
                     }
 
-                    // Check cooldown
-                    const cooldownActive = checkCooldownAndUpdateUI();
+                    var cooldownActive = checkCooldownAndUpdateUI();
                     if (!cooldownActive) {
                         statusMsg.classList.remove('active');
                     }
                     document.getElementById('claimBtn').disabled = false;
                 })
-                .catch(err => {
+                .catch(function(err) {
                     console.warn('IP API failed, using fallback fingerprint:', err);
-                    // Fallback: use a fingerprint based on navigator + localStorage
-                    const fallbackIP = 'fp_' + btoa(
+                    var fallbackIP = 'fp_' + btoa(
                         navigator.userAgent + navigator.language + screen.width + screen.height +
                         (navigator.hardwareConcurrency || '') + (navigator.deviceMemory || '')
                     ).substring(0, 32);
@@ -1326,13 +1326,12 @@
                     statusMsg.textContent = t.ipError;
                     statusMsg.className = 'status-msg active';
                     statusMsg.dataset.type = 'error';
-                    setTimeout(() => {
+                    setTimeout(function() {
                         if (document.getElementById('statusMsg').dataset.type === 'error') {
                             document.getElementById('statusMsg').classList.remove('active');
                         }
                     }, 5000);
-                    // Still allow claiming with fallback
-                    const cooldownActive = checkCooldownAndUpdateUI();
+                    var cooldownActive = checkCooldownAndUpdateUI();
                     if (!cooldownActive) {
                         document.getElementById('statusMsg').classList.remove('active');
                     }
@@ -1344,59 +1343,55 @@
         //  CLAIM
         // ===========================
         function claimAccount() {
-            const t = LANG[currentLang];
-            const display = document.getElementById('accountDisplay');
-            const emptyMsg = document.getElementById('emptyMsg');
+            var t = LANG[currentLang];
+            var display = document.getElementById('accountDisplay');
+            var emptyMsg = document.getElementById('emptyMsg');
 
-            // Check if IP is checked
             if (!ipChecked) {
                 alert(t.checkingIp);
                 return;
             }
 
-            // Check VPN
             if (isVPN) {
-                const msg = document.getElementById('statusMsg');
+                var msg = document.getElementById('statusMsg');
                 msg.textContent = t.vpnDetected;
                 msg.className = 'status-msg active vpn';
                 msg.dataset.type = 'vpn';
                 return;
             }
 
-            // Check cooldown
             if (currentUserIP) {
-                const remaining = getCooldownRemaining(currentUserIP);
+                var remaining = getCooldownRemaining(currentUserIP);
                 if (remaining > 0) {
-                    const mins = Math.floor(remaining / 60000);
-                    const secs = Math.floor((remaining % 60000) / 1000);
-                    const msg = document.getElementById('statusMsg');
+                    var mins = Math.floor(remaining / 60000);
+                    var secs = Math.floor((remaining % 60000) / 1000);
+                    var msg = document.getElementById('statusMsg');
                     msg.textContent = t.cooldownMsg(mins, secs);
                     msg.className = 'status-msg active cooldown';
                     msg.dataset.type = 'cooldown';
                     document.getElementById('claimBtn').disabled = true;
-                    // start timer
                     if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                    cooldownTimerInterval = setInterval(() => {
-                        const rem = getCooldownRemaining(currentUserIP);
+                    cooldownTimerInterval = setInterval(function() {
+                        var rem = getCooldownRemaining(currentUserIP);
                         if (rem <= 0) {
                             clearInterval(cooldownTimerInterval);
                             cooldownTimerInterval = null;
                             claimCooldownActive = false;
                             document.getElementById('claimBtn').disabled = false;
-                            const msg2 = document.getElementById('statusMsg');
+                            var msg2 = document.getElementById('statusMsg');
                             msg2.textContent = t.cooldownDone;
                             msg2.className = 'status-msg active';
                             msg2.dataset.type = 'done';
-                            setTimeout(() => {
+                            setTimeout(function() {
                                 if (document.getElementById('statusMsg').dataset.type === 'done') {
                                     document.getElementById('statusMsg').classList.remove('active');
                                 }
                             }, 4000);
                             updateStats();
                         } else {
-                            const m = Math.floor(rem / 60000);
-                            const s = Math.floor((rem % 60000) / 1000);
-                            const msg3 = document.getElementById('statusMsg');
+                            var m = Math.floor(rem / 60000);
+                            var s = Math.floor((rem % 60000) / 1000);
+                            var msg3 = document.getElementById('statusMsg');
                             msg3.textContent = t.cooldownMsg(m, s);
                         }
                     }, 1000);
@@ -1404,55 +1399,58 @@
                 }
             }
 
-            // Proceed with claim
-            const unclaimedIdx = accounts.findIndex(a => !a.claimed);
+            var unclaimedIdx = -1;
+            for (var i = 0; i < accounts.length; i++) {
+                if (!accounts[i].claimed) {
+                    unclaimedIdx = i;
+                    break;
+                }
+            }
+
             if (unclaimedIdx === -1) {
                 display.classList.remove('active');
                 emptyMsg.textContent = t.noAvailable;
                 emptyMsg.classList.add('active');
-                setTimeout(() => {
-                    if (accounts.filter(a => !a.claimed).length === 0) {
+                setTimeout(function() {
+                    if (accounts.filter(function(a) { return !a.claimed; }).length === 0) {
                         emptyMsg.textContent = t.noAccounts;
                     }
                 }, 3000);
                 return;
             }
 
-            // Claim it
             accounts[unclaimedIdx].claimed = true;
             claimedCount++;
             saveAccounts();
 
-            // Set cooldown for this IP
             if (currentUserIP) {
                 setCooldown(currentUserIP);
-                // start cooldown timer
                 claimCooldownActive = true;
                 document.getElementById('claimBtn').disabled = true;
-                const msg = document.getElementById('statusMsg');
+                var msg = document.getElementById('statusMsg');
                 msg.dataset.type = 'cooldown';
                 if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
-                cooldownTimerInterval = setInterval(() => {
-                    const rem = getCooldownRemaining(currentUserIP);
+                cooldownTimerInterval = setInterval(function() {
+                    var rem = getCooldownRemaining(currentUserIP);
                     if (rem <= 0) {
                         clearInterval(cooldownTimerInterval);
                         cooldownTimerInterval = null;
                         claimCooldownActive = false;
                         document.getElementById('claimBtn').disabled = false;
-                        const msg2 = document.getElementById('statusMsg');
+                        var msg2 = document.getElementById('statusMsg');
                         msg2.textContent = LANG[currentLang].cooldownDone;
                         msg2.className = 'status-msg active';
                         msg2.dataset.type = 'done';
-                        setTimeout(() => {
+                        setTimeout(function() {
                             if (document.getElementById('statusMsg').dataset.type === 'done') {
                                 document.getElementById('statusMsg').classList.remove('active');
                             }
                         }, 4000);
                         updateStats();
                     } else {
-                        const m = Math.floor(rem / 60000);
-                        const s = Math.floor((rem % 60000) / 1000);
-                        const msg3 = document.getElementById('statusMsg');
+                        var m = Math.floor(rem / 60000);
+                        var s = Math.floor((rem % 60000) / 1000);
+                        var msg3 = document.getElementById('statusMsg');
                         msg3.textContent = LANG[currentLang].cooldownMsg(m, s);
                         msg3.className = 'status-msg active cooldown';
                         msg3.dataset.type = 'cooldown';
@@ -1460,24 +1458,23 @@
                 }, 1000);
             }
 
-            const acc = accounts[unclaimedIdx];
+            var acc = accounts[unclaimedIdx];
             document.getElementById('emailValue').textContent = acc.email;
             document.getElementById('passwordValue').textContent = acc.password;
 
             emptyMsg.classList.remove('active');
             display.classList.add('active');
 
-            const copyBtn = document.getElementById('copyBtn');
+            var copyBtn = document.getElementById('copyBtn');
             copyBtn.textContent = t.copyBtn;
             copyBtn.classList.remove('copied');
 
-            const orig = document.getElementById('claimBtn').textContent;
+            var orig = document.getElementById('claimBtn').textContent;
             document.getElementById('claimBtn').textContent = t.claimSuccess;
-            setTimeout(() => {
+            setTimeout(function() {
                 document.getElementById('claimBtn').textContent = orig;
             }, 1500);
 
-            // update stats after claim
             updateStats();
         }
 
@@ -1485,23 +1482,23 @@
         //  COPY
         // ===========================
         function copyAccount() {
-            const t = LANG[currentLang];
-            const email = document.getElementById('emailValue').textContent;
-            const password = document.getElementById('passwordValue').textContent;
-            const text = `Email: ${email}\nPassword: ${password}`;
+            var t = LANG[currentLang];
+            var email = document.getElementById('emailValue').textContent;
+            var password = document.getElementById('passwordValue').textContent;
+            var text = 'Email: ' + email + '\nPassword: ' + password;
 
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.getElementById('copyBtn');
+            navigator.clipboard.writeText(text).then(function() {
+                var btn = document.getElementById('copyBtn');
                 btn.textContent = t.copyCopied;
                 btn.classList.add('copied');
-                setTimeout(() => {
+                setTimeout(function() {
                     btn.textContent = t.copyBtn;
                     btn.classList.remove('copied');
                 }, 2000);
-            }).catch(() => {
-                const btn = document.getElementById('copyBtn');
+            }).catch(function() {
+                var btn = document.getElementById('copyBtn');
                 btn.textContent = t.copyFail;
-                setTimeout(() => {
+                setTimeout(function() {
                     btn.textContent = t.copyBtn;
                 }, 1500);
             });
@@ -1510,13 +1507,13 @@
         // ===========================
         //  PASSWORD MODAL
         // ===========================
-        const ADMIN_PASSWORD = '123321';
+        var ADMIN_PASSWORD = '123321';
 
         function openPasswordModal() {
             document.getElementById('passwordOverlay').classList.add('active');
             document.getElementById('pwInput').value = '';
             document.getElementById('pwError').textContent = '';
-            setTimeout(() => document.getElementById('pwInput').focus(), 100);
+            setTimeout(function() { document.getElementById('pwInput').focus(); }, 100);
         }
 
         function closePasswordModal() {
@@ -1525,12 +1522,12 @@
         }
 
         function verifyPassword() {
-            const input = document.getElementById('pwInput').value.trim();
-            const t = LANG[currentLang];
+            var input = document.getElementById('pwInput').value.trim();
+            var t = LANG[currentLang];
             if (input === ADMIN_PASSWORD) {
                 closePasswordModal();
                 document.getElementById('adminPanel').classList.add('active');
-                const ta = document.getElementById('bulkInput');
+                var ta = document.getElementById('bulkInput');
                 if (!ta.value.trim()) {
                     ta.placeholder = currentLang === 'ar' ?
                         'الصق الحسابات بهذا الشكل:\nemail:pass\nemail:pass' :
@@ -1544,12 +1541,12 @@
             }
         }
 
-        document.getElementById('pwInput').addEventListener('keydown', (e) => {
+        document.getElementById('pwInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') verifyPassword();
             if (e.key === 'Escape') closePasswordModal();
         });
 
-        document.getElementById('passwordOverlay').addEventListener('click', (e) => {
+        document.getElementById('passwordOverlay').addEventListener('click', function(e) {
             if (e.target === e.currentTarget) closePasswordModal();
         });
 
@@ -1557,30 +1554,30 @@
         //  ADMIN: ADD ACCOUNTS
         // ===========================
         function addAccounts() {
-            const t = LANG[currentLang];
-            const input = document.getElementById('bulkInput').value.trim();
+            var t = LANG[currentLang];
+            var input = document.getElementById('bulkInput').value.trim();
             if (!input) return;
 
-            const lines = input.split('\n');
-            let added = 0;
+            var lines = input.split('\n');
+            var added = 0;
 
-            lines.forEach(line => {
-                line = line.trim();
-                if (!line) return;
-                let parts;
-                if (line.includes(':')) parts = line.split(':');
-                else if (line.includes('|')) parts = line.split('|');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                var parts;
+                if (line.indexOf(':') !== -1) parts = line.split(':');
+                else if (line.indexOf('|') !== -1) parts = line.split('|');
                 else parts = line.split(/\s+/);
 
                 if (parts.length >= 2) {
-                    const email = parts[0].trim();
-                    const password = parts.slice(1).join(':').trim();
+                    var email = parts[0].trim();
+                    var password = parts.slice(1).join(':').trim();
                     if (email && password) {
-                        accounts.push({ email, password, claimed: false });
+                        accounts.push({ email: email, password: password, claimed: false });
                         added++;
                     }
                 }
-            });
+            }
 
             if (added > 0) {
                 saveAccounts();
@@ -1594,7 +1591,7 @@
         //  ADMIN: CLEAR ALL
         // ===========================
         function clearAccounts() {
-            const t = LANG[currentLang];
+            var t = LANG[currentLang];
             if (!confirm(t.clearConfirm)) return;
             accounts = [];
             claimedCount = 0;
@@ -1607,9 +1604,9 @@
         //  PARTICLES
         // ===========================
         function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 45; i++) {
-                const p = document.createElement('div');
+            var container = document.getElementById('particles');
+            for (var i = 0; i < 45; i++) {
+                var p = document.createElement('div');
                 p.className = 'particle';
                 p.style.left = Math.random() * 100 + '%';
                 p.style.animationDelay = Math.random() * 12 + 's';
@@ -1634,7 +1631,10 @@
             saveAccounts();
         }
 
-        const actualClaimed = accounts.filter(a => a.claimed).length;
+        var actualClaimed = 0;
+        for (var i = 0; i < accounts.length; i++) {
+            if (accounts[i].claimed) actualClaimed++;
+        }
         if (actualClaimed !== claimedCount) {
             claimedCount = actualClaimed;
             saveAccounts();
@@ -1642,13 +1642,11 @@
 
         setLang('en');
 
-        // Start IP + VPN check
         checkVPNAndIP();
 
-        // Close admin panel on outside click
-        document.addEventListener('click', (e) => {
-            const panel = document.getElementById('adminPanel');
-            const toggle = document.getElementById('adminToggleBtn');
+        document.addEventListener('click', function(e) {
+            var panel = document.getElementById('adminPanel');
+            var toggle = document.getElementById('adminToggleBtn');
             if (panel.classList.contains('active')) {
                 if (!panel.contains(e.target) && !toggle.contains(e.target) &&
                     !document.getElementById('passwordOverlay').classList.contains('active')) {
@@ -1660,7 +1658,7 @@
             }
         });
 
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.getElementById('adminPanel').classList.remove('active');
                 closePasswordModal();
@@ -1672,6 +1670,6 @@
         console.log('⏳ Cooldown: 10 minutes per IP');
         console.log('📊 Total accounts:', accounts.length);
         console.log('🛡️ VPN detection enabled via ipapi.co');
-    <script src="script.js"></script>
+    </script>
 </body>
 </html>
