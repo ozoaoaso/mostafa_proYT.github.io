@@ -26,6 +26,85 @@
             transition: all 0.3s ease;
         }
 
+        /* maintenance overlay */
+        .maintenance-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(6px);
+        }
+        .maintenance-overlay.active {
+            display: flex;
+        }
+        .maintenance-box {
+            background: #1a1a1a;
+            border: 2px solid #ff4444;
+            border-radius: 20px;
+            padding: 40px 50px;
+            max-width: 500px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 0 60px rgba(255,68,68,0.3);
+        }
+        .maintenance-box h2 {
+            color: #ff4444;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .maintenance-box p {
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+
+        /* toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9997;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 500px;
+        }
+        .toast {
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #00ff00;
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: #fff;
+            font-size: 0.95rem;
+            box-shadow: 0 0 30px rgba(0,255,0,0.15);
+            animation: toastIn 0.5s ease, toastOut 0.5s 4.5s ease forwards;
+            width: 100%;
+            text-align: center;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+        }
+        .toast span {
+            color: #00ff00;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* rest of existing styles (same as before) */
         .lang-toggle-wrap {
             position: fixed;
             top: 20px;
@@ -405,9 +484,9 @@
             position: fixed;
             bottom: 140px;
             right: 20px;
-            width: 420px;
-            max-height: 520px;
-            background: rgba(10, 10, 10, 0.96);
+            width: 480px;
+            max-height: 70vh;
+            background: rgba(10, 10, 10, 0.97);
             border: 2px solid #00ff00;
             border-radius: 16px;
             padding: 24px;
@@ -424,10 +503,13 @@
             margin-bottom: 18px;
             font-size: 1.3rem;
             font-weight: 900;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .admin-panel textarea {
             width: 100%;
-            height: 150px;
+            height: 120px;
             background: #1a1a1a;
             border: 1px solid #333;
             border-radius: 10px;
@@ -473,12 +555,64 @@
         .admin-btn.danger:hover {
             box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
         }
+        .admin-btn.warning {
+            background: #ffaa00;
+            color: #000;
+        }
+        .admin-btn.warning:hover {
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+        }
         .admin-panel .stats {
             color: #888;
             font-size: 0.9rem;
             margin-top: 8px;
             border-top: 1px solid #222;
             padding-top: 12px;
+        }
+
+        /* log table */
+        .log-table-wrap {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+        .log-table th {
+            background: #111;
+            color: #00ff00;
+            padding: 8px 6px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .log-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #222;
+            word-break: break-word;
+        }
+        .log-table tr:hover td {
+            background: #1a1a1a;
+        }
+
+        /* maintenance mode indicator on admin */
+        .maintenance-indicator {
+            display: inline-block;
+            background: #ff4444;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-left: 10px;
         }
 
         .password-overlay {
@@ -722,6 +856,9 @@
             .status-msg {
                 font-size: 0.95rem;
             }
+            .toast-container {
+                bottom: 80px;
+            }
         }
 
         @media (max-width: 450px) {
@@ -778,10 +915,32 @@
             background: #00ff00;
             border-radius: 4px;
         }
+        .log-table-wrap::-webkit-scrollbar {
+            width: 4px;
+        }
+        .log-table-wrap::-webkit-scrollbar-track {
+            background: #111;
+        }
+        .log-table-wrap::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
+    <!-- MAINTENANCE OVERLAY -->
+    <div class="maintenance-overlay" id="maintenanceOverlay">
+        <div class="maintenance-box">
+            <h2 id="maintTitle">🔧 تحت الصيانة</h2>
+            <p id="maintDesc">الموقع قيد الصيانة حالياً، يرجى العودة لاحقاً.</p>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- LANGUAGE TOGGLE -->
     <div class="lang-toggle-wrap">
         <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
         <button class="lang-btn" data-lang="ar" onclick="setLang('ar')">عربي</button>
@@ -830,6 +989,11 @@
             <div class="label" id="totalLabel">🟡 Total</div>
             <div class="number" id="totalCount">0</div>
         </div>
+        <!-- Visitor counter -->
+        <div class="counter-box" style="border-color:#aa88ff; color:#aa88ff; box-shadow:0 0 20px rgba(170,136,255,0.25);">
+            <div class="label" id="visitorLabel">👁️ Visitors</div>
+            <div class="number" id="visitorCount">0</div>
+        </div>
     </div>
 
     <div class="admin-panel-wrap">
@@ -837,15 +1001,31 @@
     </div>
 
     <div class="admin-panel" id="adminPanel">
-        <h3 id="adminTitle">🛠️ Manage Accounts</h3>
+        <h3>
+            <span id="adminTitle">🛠️ Manage Accounts</span>
+            <span class="maintenance-indicator" id="maintIndicator" style="display:none;">🔧 MAINTENANCE</span>
+        </h3>
         <textarea id="bulkInput" placeholder="Paste accounts in format:&#10;email:pass&#10;email:pass&#10;email:pass"></textarea>
         <div class="btn-row">
             <button class="admin-btn" id="addBtn" onclick="addAccounts()">➕ <span id="addBtnText">Add Accounts</span></button>
             <button class="admin-btn danger" id="clearBtn" onclick="clearAccounts()">🗑️ <span id="clearBtnText">Clear All</span></button>
+            <button class="admin-btn warning" id="maintBtn" onclick="toggleMaintenance()">🔧 <span id="maintBtnText">Maintenance</span></button>
         </div>
         <div class="stats" id="stats">Accounts: 0 | Claimed: 0</div>
+
+        <!-- Activity Log -->
+        <div style="margin-top:16px;">
+            <div style="color:#00ff00; font-weight:700; margin-bottom:6px;">📋 <span id="logTitle">Activity Log</span></div>
+            <div class="log-table-wrap">
+                <table class="log-table" id="logTable">
+                    <thead><tr><th>#</th><th id="logTimeCol">Time</th><th id="logEventCol">Event</th></tr></thead>
+                    <tbody id="logBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
+    <!-- PASSWORD MODAL -->
     <div class="password-overlay" id="passwordOverlay">
         <div class="password-modal">
             <h2 id="pwTitle">🔐 Admin Access</h2>
@@ -858,9 +1038,11 @@
         </div>
     </div>
 
-    <!-- ===== JAVASCRIPT EMBEDDED (NO EXTERNAL FILE) ===== -->
+    <!-- ===== JAVASCRIPT ===== -->
     <script>
-        // LANGUAGE SYSTEM
+        // ===========================
+        //  LANGUAGE SYSTEM
+        // ===========================
         const LANG = {
             en: {
                 mainTitle: 'MCFA ACCOUNTS ⚡',
@@ -873,10 +1055,14 @@
                 availLabel: '🟢 Available',
                 claimedLabel: '🔵 Claimed',
                 totalLabel: '🟡 Total',
+                visitorLabel: '👁️ Visitors',
                 adminToggle: 'Admin',
                 adminTitle: '🛠️ Manage Accounts',
                 addBtn: 'Add Accounts',
                 clearBtn: 'Clear All',
+                maintBtn: 'Maintenance',
+                maintActive: '🔧 MAINTENANCE',
+                maintInactive: 'Maintenance OFF',
                 stats: function(total, claimed) { return 'Accounts: ' + total + ' | Claimed: ' + claimed; },
                 pwTitle: '🔐 Admin Access',
                 pwConfirm: 'Unlock',
@@ -898,6 +1084,15 @@
                 cooldownMsg: function(mins, secs) { return '⏳ Please wait ' + mins + 'm ' + secs + 's before claiming again.'; },
                 cooldownDone: '✅ Cooldown finished! You can claim now.',
                 ipError: '⚠️ Could not verify your IP. Please refresh and try again.',
+                logTitle: 'Activity Log',
+                logTimeCol: 'Time',
+                logEventCol: 'Event',
+                maintTitle: '🔧 Under Maintenance',
+                maintDesc: 'The site is currently under maintenance. Please come back later.',
+                toastClaim: function(email, mins) {
+                    return 'User ' + email + ' successfully claimed an account ' + mins + ' minute' + (mins>1?'s':'') + ' ago! 🎉';
+                },
+                toastClaimAr: '',
             },
             ar: {
                 mainTitle: 'حسابات MCFA ⚡',
@@ -910,10 +1105,14 @@
                 availLabel: '🟢 متاحة',
                 claimedLabel: '🔵 محجوزة',
                 totalLabel: '🟡 الإجمالي',
+                visitorLabel: '👁️ الزوار',
                 adminToggle: 'المشرف',
                 adminTitle: '🛠️ إدارة الحسابات',
                 addBtn: 'إضافة حسابات',
                 clearBtn: 'مسح الكل',
+                maintBtn: 'الصيانة',
+                maintActive: '🔧 وضع الصيانة',
+                maintInactive: 'الصيانة معطلة',
                 stats: function(total, claimed) { return 'الحسابات: ' + total + ' | المحجوزة: ' + claimed; },
                 pwTitle: '🔐 دخول المشرف',
                 pwConfirm: 'فتح',
@@ -935,6 +1134,15 @@
                 cooldownMsg: function(mins, secs) { return '⏳ يرجى الانتظار ' + mins + ' د و ' + secs + ' ث قبل المطالبة مرة أخرى.'; },
                 cooldownDone: '✅ انتهت فترة الانتظار! يمكنك المطالبة الآن.',
                 ipError: '⚠️ تعذر التحقق من IP. يرجى التحديث والمحاولة مرة أخرى.',
+                logTitle: 'سجل العمليات',
+                logTimeCol: 'الوقت',
+                logEventCol: 'الحدث',
+                maintTitle: '🔧 تحت الصيانة',
+                maintDesc: 'الموقع قيد الصيانة حالياً، يرجى العودة لاحقاً.',
+                toastClaim: function(email, mins) {
+                    return 'قام المستخدم ' + email + ' بالمطالبة بحساب بنجاح قبل ' + mins + ' دقيقة' + (mins>1?'':'') + '! 🎉';
+                },
+                toastClaimAr: '',
             }
         };
 
@@ -955,18 +1163,26 @@
             document.getElementById('availLabel').textContent = t.availLabel;
             document.getElementById('claimedLabel').textContent = t.claimedLabel;
             document.getElementById('totalLabel').textContent = t.totalLabel;
+            document.getElementById('visitorLabel').textContent = t.visitorLabel;
             document.getElementById('adminToggleText').textContent = t.adminToggle;
             document.getElementById('adminTitle').textContent = t.adminTitle;
             document.getElementById('addBtnText').textContent = t.addBtn;
             document.getElementById('clearBtnText').textContent = t.clearBtn;
+            document.getElementById('maintBtnText').textContent = t.maintBtn;
             document.getElementById('pwTitle').textContent = t.pwTitle;
             document.getElementById('pwConfirmText').textContent = t.pwConfirm;
             document.getElementById('pwCancelText').textContent = t.pwCancel;
             document.getElementById('pwInput').placeholder = t.pwPlaceholder;
             document.getElementById('subLabelText').textContent = t.subLabel;
             document.getElementById('subBtnText').textContent = t.subBtn;
+            document.getElementById('logTitle').textContent = t.logTitle;
+            document.getElementById('logTimeCol').textContent = t.logTimeCol;
+            document.getElementById('logEventCol').textContent = t.logEventCol;
+            document.getElementById('maintTitle').textContent = t.maintTitle;
+            document.getElementById('maintDesc').textContent = t.maintDesc;
 
             updateStats();
+            updateLogTable();
 
             var copyBtn = document.getElementById('copyBtn');
             if (copyBtn.classList.contains('copied')) {
@@ -1011,13 +1227,20 @@
                     msgEl.textContent = t.vpnDetected;
                 }
             }
+            // update maintenance button text
+            updateMaintUI();
         }
 
-        // STORAGE
+        // ===========================
+        //  STORAGE & STATE
+        // ===========================
         var accounts = JSON.parse(localStorage.getItem('mfa_accounts')) || [];
         var claimedCount = parseInt(localStorage.getItem('mfa_claimed')) || 0;
         var COOLDOWN_MINUTES = 10;
         var COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
+        var visitorCount = parseInt(localStorage.getItem('mfa_visitors')) || 0;
+        var logs = JSON.parse(localStorage.getItem('mfa_logs')) || [];
+        var maintenanceMode = localStorage.getItem('mfa_maintenance') === 'true';
 
         function saveAccounts() {
             localStorage.setItem('mfa_accounts', JSON.stringify(accounts));
@@ -1031,12 +1254,16 @@
             document.getElementById('availableCount').textContent = available;
             document.getElementById('claimedCountDisplay').textContent = claimedCount;
             document.getElementById('totalCount').textContent = total;
+            document.getElementById('visitorCount').textContent = visitorCount;
+
             var t = LANG[currentLang];
             document.getElementById('stats').textContent = t.stats(total, claimedCount);
+
             var box = document.getElementById('availableBox');
             box.classList.remove('warning', 'empty');
             if (available === 0) box.classList.add('empty');
             else if (available <= 3) box.classList.add('warning');
+
             var emptyMsg = document.getElementById('emptyMsg');
             if (available === 0 && total > 0) {
                 emptyMsg.textContent = t.noAccounts;
@@ -1049,7 +1276,77 @@
             }
         }
 
-        // IP & VPN
+        // ===========================
+        //  LOGGING
+        // ===========================
+        function logActivity(eventText) {
+            var now = new Date();
+            var timeStr = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
+            logs.push({ time: timeStr, event: eventText });
+            if (logs.length > 200) logs.shift(); // keep last 200
+            localStorage.setItem('mfa_logs', JSON.stringify(logs));
+            updateLogTable();
+        }
+
+        function updateLogTable() {
+            var tbody = document.getElementById('logBody');
+            tbody.innerHTML = '';
+            var reversed = logs.slice().reverse();
+            for (var i = 0; i < reversed.length; i++) {
+                var row = document.createElement('tr');
+                var num = document.createElement('td');
+                num.textContent = i+1;
+                var time = document.createElement('td');
+                time.textContent = reversed[i].time;
+                var evt = document.createElement('td');
+                evt.textContent = reversed[i].event;
+                row.appendChild(num);
+                row.appendChild(time);
+                row.appendChild(evt);
+                tbody.appendChild(row);
+            }
+        }
+
+        // ===========================
+        //  MAINTENANCE MODE
+        // ===========================
+        function updateMaintUI() {
+            var t = LANG[currentLang];
+            var btn = document.getElementById('maintBtnText');
+            var indicator = document.getElementById('maintIndicator');
+            if (maintenanceMode) {
+                btn.textContent = t.maintActive;
+                indicator.style.display = 'inline-block';
+                document.getElementById('maintenanceOverlay').classList.add('active');
+            } else {
+                btn.textContent = t.maintInactive;
+                indicator.style.display = 'none';
+                document.getElementById('maintenanceOverlay').classList.remove('active');
+            }
+        }
+
+        function toggleMaintenance() {
+            maintenanceMode = !maintenanceMode;
+            localStorage.setItem('mfa_maintenance', maintenanceMode.toString());
+            logActivity('Maintenance mode ' + (maintenanceMode ? 'ON' : 'OFF'));
+            updateMaintUI();
+            // If maintenance is turned ON, show overlay for all non-admin
+            checkMaintenanceForVisitor();
+        }
+
+        function checkMaintenanceForVisitor() {
+            // If maintenance is ON and admin panel is NOT open (or admin not authenticated), show overlay
+            var isAdmin = document.getElementById('adminPanel').classList.contains('active');
+            if (maintenanceMode && !isAdmin) {
+                document.getElementById('maintenanceOverlay').classList.add('active');
+            } else {
+                document.getElementById('maintenanceOverlay').classList.remove('active');
+            }
+        }
+
+        // ===========================
+        //  IP & VPN
+        // ===========================
         var currentUserIP = null;
         var isVPN = false;
         var ipChecked = false;
@@ -1187,7 +1484,49 @@
             });
         }
 
-        // CLAIM
+        // ===========================
+        //  TOAST NOTIFICATIONS (fake)
+        // ===========================
+        var toastInterval = null;
+
+        function startFakeNotifications() {
+            if (toastInterval) clearInterval(toastInterval);
+            toastInterval = setInterval(function() {
+                if (maintenanceMode) return; // don't show during maintenance
+                showFakeToast();
+            }, 10000 + Math.random() * 10000); // 10-20 sec
+        }
+
+        function showFakeToast() {
+            var t = LANG[currentLang];
+            var emails = ['john.doe', 'sara.ahmed', 'kareem.m', 'lina.h', 'mohammed.k', 'fatima.z', 'ali.r', 'nora.a', 'youssef.t', 'amira.s'];
+            var randomEmail = emails[Math.floor(Math.random() * emails.length)] + '@gmail.com';
+            // mask email: first two chars + *** + domain
+            var masked = randomEmail.substring(0,2) + '***' + randomEmail.substring(randomEmail.indexOf('@'));
+            var mins = Math.floor(Math.random() * 8) + 1; // 1-8 minutes ago
+            var msg = t.toastClaim(masked, mins);
+            // if arabic, use arabic version
+            if (currentLang === 'ar') {
+                msg = 'قام المستخدم ' + masked + ' بالمطالبة بحساب بنجاح قبل ' + mins + ' دقيقة' + (mins>1?'':'') + '! 🎉';
+            }
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            container.appendChild(toast);
+            // remove after 5 seconds
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 5000);
+            // limit to 3 toasts at a time
+            while (container.children.length > 3) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // ===========================
+        //  CLAIM (modified to log)
+        // ===========================
         function claimAccount() {
             var t = LANG[currentLang];
             var display = document.getElementById('accountDisplay');
@@ -1269,6 +1608,10 @@
             claimedCount++;
             saveAccounts();
 
+            // log the claim
+            var location = currentUserIP ? ' (IP: ' + currentUserIP + ')' : '';
+            logActivity('Account claimed by ' + (currentUserIP || 'unknown') + location);
+
             if (currentUserIP) {
                 setCooldown(currentUserIP);
                 claimCooldownActive = true;
@@ -1324,7 +1667,9 @@
             updateStats();
         }
 
-        // COPY
+        // ===========================
+        //  COPY
+        // ===========================
         function copyAccount() {
             var t = LANG[currentLang];
             var email = document.getElementById('emailValue').textContent;
@@ -1348,7 +1693,9 @@
             });
         }
 
-        // PASSWORD MODAL
+        // ===========================
+        //  PASSWORD MODAL
+        // ===========================
         var ADMIN_PASSWORD = '123321';
 
         function openPasswordModal() {
@@ -1369,6 +1716,8 @@
             if (input === ADMIN_PASSWORD) {
                 closePasswordModal();
                 document.getElementById('adminPanel').classList.add('active');
+                // after admin opens, check maintenance overlay
+                checkMaintenanceForVisitor();
                 var ta = document.getElementById('bulkInput');
                 if (!ta.value.trim()) {
                     ta.placeholder = currentLang === 'ar' ?
@@ -1376,6 +1725,9 @@
                         'Paste accounts in format:\nemail:pass\nemail:pass';
                 }
                 updateStats();
+                updateLogTable();
+                updateMaintUI();
+                logActivity('Admin logged in');
             } else {
                 document.getElementById('pwError').textContent = t.pwErrorWrong;
                 document.getElementById('pwInput').value = '';
@@ -1392,7 +1744,9 @@
             if (e.target === e.currentTarget) closePasswordModal();
         });
 
-        // ADMIN: ADD ACCOUNTS
+        // ===========================
+        //  ADMIN: ADD ACCOUNTS (log)
+        // ===========================
         function addAccounts() {
             var t = LANG[currentLang];
             var input = document.getElementById('bulkInput').value.trim();
@@ -1423,11 +1777,14 @@
                 saveAccounts();
                 document.getElementById('bulkInput').value = '';
                 alert(t.addSuccess(added));
+                logActivity('Added ' + added + ' accounts');
                 document.getElementById('adminPanel').classList.add('active');
             }
         }
 
-        // ADMIN: CLEAR ALL
+        // ===========================
+        //  ADMIN: CLEAR ALL (log)
+        // ===========================
         function clearAccounts() {
             var t = LANG[currentLang];
             if (!confirm(t.clearConfirm)) return;
@@ -1436,9 +1793,12 @@
             saveAccounts();
             document.getElementById('accountDisplay').classList.remove('active');
             alert(t.clearDone);
+            logActivity('Cleared all accounts');
         }
 
-        // PARTICLES
+        // ===========================
+        //  PARTICLES
+        // ===========================
         function createParticles() {
             var container = document.getElementById('particles');
             for (var i = 0; i < 45; i++) {
@@ -1453,8 +1813,15 @@
             }
         }
 
-        // INIT
+        // ===========================
+        //  INIT
+        // ===========================
         createParticles();
+
+        // increment visitor counter
+        visitorCount++;
+        localStorage.setItem('mfa_visitors', visitorCount.toString());
+        logActivity('Page visit (total ' + visitorCount + ')');
 
         if (accounts.length === 0) {
             accounts = [
@@ -1476,23 +1843,43 @@
 
         setLang('en');
         checkVPNAndIP();
+        startFakeNotifications();
 
-        document.addEventListener('click', function(e) {
-            // just to keep admin panel open if clicked inside
-        });
-
+        // admin panel close on escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.getElementById('adminPanel').classList.remove('active');
                 closePasswordModal();
+                // re-check maintenance overlay
+                checkMaintenanceForVisitor();
             }
         });
+
+        // if admin panel is closed, check maintenance
+        document.addEventListener('click', function(e) {
+            var panel = document.getElementById('adminPanel');
+            var toggle = document.getElementById('adminToggleBtn');
+            if (panel.classList.contains('active')) {
+                if (!panel.contains(e.target) && !toggle.contains(e.target) &&
+                    !document.getElementById('passwordOverlay').classList.contains('active')) {
+                    // keep open if click outside (we can close if needed, but we keep open)
+                }
+            }
+            // update maintenance overlay
+            checkMaintenanceForVisitor();
+        });
+
+        // initial maintenance check
+        checkMaintenanceForVisitor();
+        updateMaintUI();
 
         console.log('🚀 MCFA Accounts loaded successfully!');
         console.log('🔑 Admin password: 123321');
         console.log('⏳ Cooldown: 10 minutes per IP');
         console.log('📊 Total accounts:', accounts.length);
         console.log('🛡️ VPN detection enabled via ipapi.co');
+        console.log('👁️ Visitors:', visitorCount);
+        console.log('📋 Log entries:', logs.length);
     </script>
 
 </body>
