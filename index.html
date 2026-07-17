@@ -542,29 +542,34 @@
             flex: 1;
             min-width: 100px;
         }
-        .admin-btn:hover {
+        .admin-btn:hover:not(:disabled) {
             transform: scale(1.04);
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        .admin-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
         }
         .admin-btn.danger {
             background: #ff4444;
             color: #fff;
         }
-        .admin-btn.danger:hover {
+        .admin-btn.danger:hover:not(:disabled) {
             box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
         }
         .admin-btn.warning {
             background: #ffaa00;
             color: #000;
         }
-        .admin-btn.warning:hover {
+        .admin-btn.warning:hover:not(:disabled) {
             box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
         }
         .admin-btn.info {
             background: #00aaff;
             color: #000;
         }
-        .admin-btn.info:hover {
+        .admin-btn.info:hover:not(:disabled) {
             box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
         }
         .admin-panel .stats {
@@ -1048,7 +1053,7 @@
             <input type="text" id="githubOwner" placeholder="e.g. your-username" value="">
             <label>Repository Name</label>
             <input type="text" id="githubRepo" placeholder="e.g. your-repo" value="">
-            <label>File Path (inside repo)</label>
+            <label>File Path (accounts)</label>
             <input type="text" id="githubPath" placeholder="e.g. mcfa.txt" value="mcfa.txt">
             <label>Personal Access Token (classic, with repo scope)</label>
             <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" value="">
@@ -1152,6 +1157,11 @@
                 githubSaveSuccess: '✅ Saved to GitHub successfully!',
                 githubSaveError: '❌ Failed to save to GitHub. Check settings and token.',
                 githubClear: '🧹 GitHub settings cleared.',
+                maintSyncSuccess: '✅ Maintenance state synced to GitHub.',
+                maintSyncError: '❌ Failed to sync maintenance state to GitHub.',
+                noTokenWarning: '⚠️ GitHub token not set. Admin actions (Add/Clear) are disabled.',
+                maintLoadError: '❌ Failed to load maintenance state from GitHub. Using local state.',
+                maintLoadSuccess: '✅ Maintenance state loaded from GitHub.',
             },
             ar: {
                 mainTitle: 'حسابات MCFA ⚡',
@@ -1206,6 +1216,11 @@
                 githubSaveSuccess: '✅ تم الحفظ في GitHub بنجاح!',
                 githubSaveError: '❌ فشل الحفظ في GitHub. تحقق من الإعدادات والرمز.',
                 githubClear: '🧹 تم مسح إعدادات GitHub.',
+                maintSyncSuccess: '✅ تم مزامنة حالة الصيانة مع GitHub.',
+                maintSyncError: '❌ فشلت مزامنة حالة الصيانة مع GitHub.',
+                noTokenWarning: '⚠️ رمز GitHub غير موجود. إجراءات المشرف (إضافة/مسح) معطلة.',
+                maintLoadError: '❌ فشل تحميل حالة الصيانة من GitHub. سيتم استخدام الحالة المحلية.',
+                maintLoadSuccess: '✅ تم تحميل حالة الصيانة من GitHub.',
             }
         };
 
@@ -1321,6 +1336,7 @@
             document.getElementById('githubRepo').value = githubSettings.repo || '';
             document.getElementById('githubPath').value = githubSettings.path || 'mcfa.txt';
             document.getElementById('githubToken').value = githubSettings.token || '';
+            updateAdminButtons();
         }
 
         function saveSettingsFromUI() {
@@ -1329,6 +1345,7 @@
             githubSettings.path = document.getElementById('githubPath').value.trim() || 'mcfa.txt';
             githubSettings.token = document.getElementById('githubToken').value.trim();
             saveGitHubSettings();
+            updateAdminButtons();
         }
 
         function clearGitHubSettings() {
@@ -1337,6 +1354,7 @@
             loadSettingsToUI();
             document.getElementById('githubStatus').textContent = LANG[currentLang].githubClear;
             document.getElementById('githubStatus').style.color = '#ffaa00';
+            updateAdminButtons();
         }
 
         // ===========================
@@ -1367,7 +1385,7 @@
 
         function updateFileContent(owner, repo, path, token, content, sha, message) {
             var payload = {
-                message: message || 'Update mcfa.txt via MCFA site',
+                message: message || 'Update file via MCFA site',
                 content: btoa(unescape(encodeURIComponent(content))),
                 sha: sha
             };
@@ -1387,7 +1405,95 @@
         }
 
         // ===========================
-        //  LOAD FROM GITHUB
+        //  MAINTENANCE SYNC WITH GITHUB
+        // ===========================
+        var MAINTENANCE_FILE = 'maintenance.txt';
+
+        function loadMaintenanceFromGitHub() {
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                // no settings, just use local state
+                return Promise.resolve();
+            }
+            return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(MAINTENANCE_FILE), {
+                headers: getGitHubHeaders()
+            })
+            .then(function(res) {
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        // file doesn't exist => default false
+                        maintenanceMode = false;
+                        localStorage.setItem('mfa_maintenance', 'false');
+                        updateMaintUI();
+                        return;
+                    }
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data) return;
+                var content = atob(data.content).trim();
+                maintenanceMode = (content.toLowerCase() === 'true');
+                localStorage.setItem('mfa_maintenance', maintenanceMode.toString());
+                updateMaintUI();
+                logActivity('Maintenance state loaded from GitHub: ' + maintenanceMode);
+                document.getElementById('githubStatus').textContent = LANG[currentLang].maintLoadSuccess + ' (' + maintenanceMode + ')';
+                document.getElementById('githubStatus').style.color = '#00ff00';
+            })
+            .catch(function(err) {
+                console.warn('Failed to load maintenance from GitHub:', err);
+                document.getElementById('githubStatus').textContent = LANG[currentLang].maintLoadError;
+                document.getElementById('githubStatus').style.color = '#ff4444';
+                // keep local state
+            });
+        }
+
+        function saveMaintenanceToGitHub() {
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                // can't sync, but we still update local
+                return Promise.resolve();
+            }
+            var content = maintenanceMode ? 'true' : 'false';
+            var path = MAINTENANCE_FILE;
+            return getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
+            .then(function(sha) {
+                if (sha === null) {
+                    var payload = {
+                        message: 'Set maintenance state via MCFA site',
+                        content: btoa(unescape(encodeURIComponent(content)))
+                    };
+                    return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'token ' + githubSettings.token,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update maintenance state via MCFA site');
+                }
+            })
+            .then(function(res) {
+                if (res && !res.ok) throw new Error('HTTP ' + res.status);
+                if (res) return res.json();
+            })
+            .then(function() {
+                document.getElementById('githubStatus').textContent = LANG[currentLang].maintSyncSuccess;
+                document.getElementById('githubStatus').style.color = '#00ff00';
+                logActivity('Maintenance state synced to GitHub: ' + maintenanceMode);
+            })
+            .catch(function(err) {
+                console.warn('Failed to save maintenance to GitHub:', err);
+                document.getElementById('githubStatus').textContent = LANG[currentLang].maintSyncError + ' (' + err.message + ')';
+                document.getElementById('githubStatus').style.color = '#ff4444';
+                logActivity('Failed to sync maintenance to GitHub: ' + err.message);
+            });
+        }
+
+        // ===========================
+        //  LOAD ACCOUNTS FROM GITHUB
         // ===========================
         function loadFromGitHub() {
             saveSettingsFromUI();
@@ -1411,7 +1517,6 @@
             .then(function(res) {
                 if (!res.ok) {
                     if (res.status === 404) {
-                        // file does not exist => treat as empty
                         statusEl.textContent = '📭 File not found, starting empty.';
                         statusEl.style.color = '#ffaa00';
                         accounts = [];
@@ -1427,7 +1532,6 @@
             .then(function(data) {
                 if (!data) return;
                 var content = atob(data.content);
-                // parse accounts
                 var lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
                 var newAccounts = [];
                 for (var i = 0; i < lines.length; i++) {
@@ -1446,10 +1550,7 @@
                 }
                 accounts = newAccounts;
                 claimedCount = 0;
-                // reset claimed count (since we load fresh)
-                // We'll assume none claimed until they claim
                 saveAccounts();
-                // Show success
                 statusEl.textContent = t.githubLoadSuccess + ' (' + accounts.length + ' accounts)';
                 statusEl.style.color = '#00ff00';
                 document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
@@ -1464,7 +1565,7 @@
         }
 
         // ===========================
-        //  SAVE TO GITHUB
+        //  SAVE ACCOUNTS TO GITHUB
         // ===========================
         function saveToGitHub() {
             saveSettingsFromUI();
@@ -1479,15 +1580,12 @@
                 return;
             }
 
-            // Build content from accounts (only unclaimed? we save all, but claimed ones are already removed)
             var content = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
-
             var path = githubSettings.path || 'mcfa.txt';
-            // Get SHA first
+
             getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
             .then(function(sha) {
                 if (sha === null) {
-                    // file doesn't exist, create without sha
                     var payload = {
                         message: 'Create mcfa.txt via MCFA site',
                         content: btoa(unescape(encodeURIComponent(content)))
@@ -1512,7 +1610,7 @@
                 }
                 return res.json();
             })
-            .then(function(data) {
+            .then(function() {
                 statusEl.textContent = t.githubSaveSuccess;
                 statusEl.style.color = '#00ff00';
                 logActivity('Saved accounts to GitHub (' + accounts.length + ')');
@@ -1525,13 +1623,12 @@
         }
 
         // ===========================
-        //  ACCOUNT MANAGEMENT (modified to sync with GitHub after claim)
+        //  ACCOUNT MANAGEMENT
         // ===========================
         function saveAccounts() {
             localStorage.setItem('mfa_accounts', JSON.stringify(accounts));
             localStorage.setItem('mfa_claimed', claimedCount.toString());
             updateStats();
-            // also update the bulk input textarea if admin panel is visible
             if (document.getElementById('adminPanel').classList.contains('active')) {
                 document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
             }
@@ -1617,6 +1714,13 @@
             logActivity('Maintenance mode ' + (maintenanceMode ? 'ON' : 'OFF'));
             updateMaintUI();
             checkMaintenanceForVisitor();
+            // Sync to GitHub if token set
+            if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
+                saveMaintenanceToGitHub();
+            } else {
+                document.getElementById('githubStatus').textContent = LANG[currentLang].noTokenWarning;
+                document.getElementById('githubStatus').style.color = '#ffaa00';
+            }
         }
 
         function checkMaintenanceForVisitor() {
@@ -1625,6 +1729,26 @@
                 document.getElementById('maintenanceOverlay').classList.add('active');
             } else {
                 document.getElementById('maintenanceOverlay').classList.remove('active');
+            }
+        }
+
+        // ===========================
+        //  ADMIN BUTTONS (enable/disable based on token)
+        // ===========================
+        function updateAdminButtons() {
+            var hasToken = !!(githubSettings.owner && githubSettings.repo && githubSettings.token);
+            var addBtn = document.getElementById('addBtn');
+            var clearBtn = document.getElementById('clearBtn');
+            addBtn.disabled = !hasToken;
+            clearBtn.disabled = !hasToken;
+            // show warning if no token
+            var statusEl = document.getElementById('githubStatus');
+            if (!hasToken && statusEl.textContent.indexOf('⚠️') === -1) {
+                // don't override if there's an error message
+                if (statusEl.textContent === '' || statusEl.textContent.indexOf('Loading') === -1) {
+                    statusEl.textContent = LANG[currentLang].noTokenWarning;
+                    statusEl.style.color = '#ffaa00';
+                }
             }
         }
 
@@ -1883,17 +2007,14 @@
                 return;
             }
 
-            // Mark claimed locally
             var claimedAccount = accounts[unclaimedIdx];
-            accounts.splice(unclaimedIdx, 1); // remove from array
+            accounts.splice(unclaimedIdx, 1);
             claimedCount++;
             saveAccounts();
 
-            // Log
             var location = currentUserIP ? ' (IP: ' + currentUserIP + ')' : '';
             logActivity('Account claimed by ' + (currentUserIP || 'unknown') + location);
 
-            // Set cooldown
             if (currentUserIP) {
                 setCooldown(currentUserIP);
                 claimCooldownActive = true;
@@ -1929,7 +2050,6 @@
                 }, 1000);
             }
 
-            // Show account
             document.getElementById('emailValue').textContent = claimedAccount.email;
             document.getElementById('passwordValue').textContent = claimedAccount.password;
             emptyMsg.classList.remove('active');
@@ -1947,15 +2067,13 @@
 
             updateStats();
 
-            // ---------- SYNC WITH GITHUB ----------
-            // After local update, push to GitHub if settings exist
+            // Sync with GitHub if token set
             if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
                 var content = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 var path = githubSettings.path || 'mcfa.txt';
                 getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
                 .then(function(sha) {
                     if (sha === null) {
-                        // create
                         var payload = {
                             message: 'Update after claim via MCFA site',
                             content: btoa(unescape(encodeURIComponent(content)))
@@ -1988,6 +2106,9 @@
                     document.getElementById('githubStatus').style.color = '#ff4444';
                     logActivity('GitHub sync failed after claim: ' + err.message);
                 });
+            } else {
+                document.getElementById('githubStatus').textContent = LANG[currentLang].noTokenWarning;
+                document.getElementById('githubStatus').style.color = '#ffaa00';
             }
         }
 
@@ -2048,12 +2169,12 @@
                         'الصق الحسابات بهذا الشكل:\nemail:pass\nemail:pass' :
                         'Paste accounts in format:\nemail:pass\nemail:pass';
                 }
-                // populate textarea with current accounts
                 ta.value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 updateStats();
                 updateLogTable();
                 updateMaintUI();
                 logActivity('Admin logged in');
+                updateAdminButtons();
             } else {
                 document.getElementById('pwError').textContent = t.pwErrorWrong;
                 document.getElementById('pwInput').value = '';
@@ -2071,10 +2192,16 @@
         });
 
         // ===========================
-        //  ADMIN: ADD ACCOUNTS (local only, then sync)
+        //  ADMIN: ADD ACCOUNTS (local + sync)
         // ===========================
         function addAccounts() {
             var t = LANG[currentLang];
+            // Check token
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                alert(t.noTokenWarning);
+                return;
+            }
+
             var input = document.getElementById('bulkInput').value.trim();
             if (!input) return;
 
@@ -2093,7 +2220,6 @@
                     var email = parts[0].trim();
                     var password = parts.slice(1).join(':').trim();
                     if (email && password) {
-                        // avoid duplicates? we just append
                         accounts.push({ email: email, password: password, claimed: false });
                         added++;
                     }
@@ -2105,10 +2231,8 @@
                 document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 alert(t.addSuccess(added));
                 logActivity('Added ' + added + ' accounts locally');
-                // Save to GitHub if settings exist
-                if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
-                    saveToGitHub();
-                }
+                // Save to GitHub
+                saveToGitHub();
                 document.getElementById('adminPanel').classList.add('active');
             }
         }
@@ -2118,6 +2242,10 @@
         // ===========================
         function clearAccounts() {
             var t = LANG[currentLang];
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                alert(t.noTokenWarning);
+                return;
+            }
             if (!confirm(t.clearConfirm)) return;
             accounts = [];
             claimedCount = 0;
@@ -2125,10 +2253,7 @@
             document.getElementById('accountDisplay').classList.remove('active');
             alert(t.clearDone);
             logActivity('Cleared all accounts');
-            // Save to GitHub if settings exist
-            if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
-                saveToGitHub();
-            }
+            saveToGitHub();
         }
 
         // ===========================
@@ -2160,68 +2285,76 @@
         // Load settings from localStorage
         loadSettingsToUI();
 
-        // If we have GitHub settings, auto-load from GitHub
+        // Load maintenance state from GitHub first, then accounts
+        var initPromise = Promise.resolve();
         if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
-            // Auto load after a short delay
-            setTimeout(function() {
-                loadFromGitHub();
-            }, 500);
+            initPromise = loadMaintenanceFromGitHub()
+                .then(function() {
+                    // Then load accounts
+                    return loadFromGitHub();
+                })
+                .catch(function(err) {
+                    console.warn('Init error:', err);
+                });
         } else {
-            // fallback: if no accounts, use demo accounts
+            // No GitHub settings, use local state (no demo accounts)
             if (accounts.length === 0) {
-                accounts = [
-                    { email: 'demo1@mcfa.com', password: 'pass123', claimed: false },
-                    { email: 'demo2@mcfa.com', password: 'pass456', claimed: false },
-                    { email: 'demo3@mcfa.com', password: 'pass789', claimed: false },
-                ];
+                // No demo accounts - just show empty
+                accounts = [];
                 saveAccounts();
             }
         }
 
-        var actualClaimed = 0;
-        for (var i = 0; i < accounts.length; i++) {
-            if (accounts[i].claimed) actualClaimed++;
-        }
-        if (actualClaimed !== claimedCount) {
-            claimedCount = actualClaimed;
-            saveAccounts();
-        }
-
-        setLang('en');
-        checkVPNAndIP();
-        startFakeNotifications();
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.getElementById('adminPanel').classList.remove('active');
-                closePasswordModal();
-                checkMaintenanceForVisitor();
+        // Wait for init to complete then continue
+        initPromise.then(function() {
+            // Ensure claimed count is correct
+            var actualClaimed = 0;
+            for (var i = 0; i < accounts.length; i++) {
+                if (accounts[i].claimed) actualClaimed++;
             }
-        });
+            if (actualClaimed !== claimedCount) {
+                claimedCount = actualClaimed;
+                saveAccounts();
+            }
 
-        document.addEventListener('click', function(e) {
-            var panel = document.getElementById('adminPanel');
-            var toggle = document.getElementById('adminToggleBtn');
-            if (panel.classList.contains('active')) {
-                if (!panel.contains(e.target) && !toggle.contains(e.target) &&
-                    !document.getElementById('passwordOverlay').classList.contains('active')) {
-                    // keep open
+            setLang('en');
+            checkVPNAndIP();
+            startFakeNotifications();
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.getElementById('adminPanel').classList.remove('active');
+                    closePasswordModal();
+                    checkMaintenanceForVisitor();
                 }
-            }
+            });
+
+            document.addEventListener('click', function(e) {
+                var panel = document.getElementById('adminPanel');
+                var toggle = document.getElementById('adminToggleBtn');
+                if (panel.classList.contains('active')) {
+                    if (!panel.contains(e.target) && !toggle.contains(e.target) &&
+                        !document.getElementById('passwordOverlay').classList.contains('active')) {
+                        // keep open
+                    }
+                }
+                checkMaintenanceForVisitor();
+            });
+
             checkMaintenanceForVisitor();
+            updateMaintUI();
+            updateAdminButtons();
+
+            console.log('🚀 MCFA Accounts with GitHub integration loaded!');
+            console.log('🔑 Admin password: 123321');
+            console.log('⏳ Cooldown: 10 minutes per IP');
+            console.log('📊 Total accounts:', accounts.length);
+            console.log('🛡️ VPN detection enabled via ipapi.co');
+            console.log('👁️ Visitors:', visitorCount);
+            console.log('📋 Log entries:', logs.length);
+            console.log('🔗 GitHub settings loaded:', githubSettings.owner ? 'Yes' : 'No');
+            console.log('🔧 Maintenance mode:', maintenanceMode);
         });
-
-        checkMaintenanceForVisitor();
-        updateMaintUI();
-
-        console.log('🚀 MCFA Accounts with GitHub integration loaded!');
-        console.log('🔑 Admin password: 123321');
-        console.log('⏳ Cooldown: 10 minutes per IP');
-        console.log('📊 Total accounts:', accounts.length);
-        console.log('🛡️ VPN detection enabled via ipapi.co');
-        console.log('👁️ Visitors:', visitorCount);
-        console.log('📋 Log entries:', logs.length);
-        console.log('🔗 GitHub settings loaded:', githubSettings.owner ? 'Yes' : 'No');
     </script>
 </body>
 </html>
