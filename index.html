@@ -26,7 +26,6 @@
             transition: all 0.3s ease;
         }
 
-        /* maintenance overlay */
         .maintenance-overlay {
             display: none;
             position: fixed;
@@ -63,7 +62,6 @@
             color: #aaa;
         }
 
-        /* toast notifications */
         .toast-container {
             position: fixed;
             bottom: 100px;
@@ -104,7 +102,6 @@
             to { opacity: 0; transform: translateY(-20px); }
         }
 
-        /* rest of existing styles (same as before) */
         .lang-toggle-wrap {
             position: fixed;
             top: 20px;
@@ -506,6 +503,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
         }
         .admin-panel textarea {
             width: 100%;
@@ -562,6 +560,13 @@
         .admin-btn.warning:hover {
             box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
         }
+        .admin-btn.info {
+            background: #00aaff;
+            color: #000;
+        }
+        .admin-btn.info:hover {
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+        }
         .admin-panel .stats {
             color: #888;
             font-size: 0.9rem;
@@ -570,7 +575,39 @@
             padding-top: 12px;
         }
 
-        /* log table */
+        .admin-panel .settings-group {
+            background: #111;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            border: 1px solid #2a2a2a;
+        }
+        .admin-panel .settings-group label {
+            color: #aaa;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+        .admin-panel .settings-group input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .admin-panel .settings-group input:focus {
+            border-color: #00ff00;
+        }
+        .admin-panel .settings-group .btn-row {
+            margin-top: 12px;
+        }
+
         .log-table-wrap {
             max-height: 200px;
             overflow-y: auto;
@@ -602,7 +639,6 @@
             background: #1a1a1a;
         }
 
-        /* maintenance mode indicator on admin */
         .maintenance-indicator {
             display: inline-block;
             background: #ff4444;
@@ -989,7 +1025,6 @@
             <div class="label" id="totalLabel">🟡 Total</div>
             <div class="number" id="totalCount">0</div>
         </div>
-        <!-- Visitor counter -->
         <div class="counter-box" style="border-color:#aa88ff; color:#aa88ff; box-shadow:0 0 20px rgba(170,136,255,0.25);">
             <div class="label" id="visitorLabel">👁️ Visitors</div>
             <div class="number" id="visitorCount">0</div>
@@ -1005,7 +1040,27 @@
             <span id="adminTitle">🛠️ Manage Accounts</span>
             <span class="maintenance-indicator" id="maintIndicator" style="display:none;">🔧 MAINTENANCE</span>
         </h3>
-        <textarea id="bulkInput" placeholder="Paste accounts in format:&#10;email:pass&#10;email:pass&#10;email:pass"></textarea>
+
+        <!-- GitHub Settings -->
+        <div class="settings-group">
+            <div style="color:#00ff00; font-weight:700; margin-bottom:8px;">🔗 GitHub Settings</div>
+            <label>Repository Owner</label>
+            <input type="text" id="githubOwner" placeholder="e.g. your-username" value="">
+            <label>Repository Name</label>
+            <input type="text" id="githubRepo" placeholder="e.g. your-repo" value="">
+            <label>File Path (inside repo)</label>
+            <input type="text" id="githubPath" placeholder="e.g. mcfa.txt" value="mcfa.txt">
+            <label>Personal Access Token (classic, with repo scope)</label>
+            <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" value="">
+            <div class="btn-row">
+                <button class="admin-btn info" onclick="loadFromGitHub()">📥 Load from GitHub</button>
+                <button class="admin-btn warning" onclick="saveToGitHub()">💾 Save to GitHub</button>
+                <button class="admin-btn danger" onclick="clearGitHubSettings()">🗑️ Clear Settings</button>
+            </div>
+            <div id="githubStatus" style="color:#ffaa00; font-size:0.85rem; margin-top:8px; min-height:20px;"></div>
+        </div>
+
+        <textarea id="bulkInput" placeholder="Paste accounts in format:&#10;email:pass&#10;email:pass"></textarea>
         <div class="btn-row">
             <button class="admin-btn" id="addBtn" onclick="addAccounts()">➕ <span id="addBtnText">Add Accounts</span></button>
             <button class="admin-btn danger" id="clearBtn" onclick="clearAccounts()">🗑️ <span id="clearBtnText">Clear All</span></button>
@@ -1092,7 +1147,11 @@
                 toastClaim: function(email, mins) {
                     return 'User ' + email + ' successfully claimed an account ' + mins + ' minute' + (mins>1?'s':'') + ' ago! 🎉';
                 },
-                toastClaimAr: '',
+                githubLoadSuccess: '✅ Loaded accounts from GitHub successfully!',
+                githubLoadError: '❌ Failed to load from GitHub. Check settings and token.',
+                githubSaveSuccess: '✅ Saved to GitHub successfully!',
+                githubSaveError: '❌ Failed to save to GitHub. Check settings and token.',
+                githubClear: '🧹 GitHub settings cleared.',
             },
             ar: {
                 mainTitle: 'حسابات MCFA ⚡',
@@ -1142,7 +1201,11 @@
                 toastClaim: function(email, mins) {
                     return 'قام المستخدم ' + email + ' بالمطالبة بحساب بنجاح قبل ' + mins + ' دقيقة' + (mins>1?'':'') + '! 🎉';
                 },
-                toastClaimAr: '',
+                githubLoadSuccess: '✅ تم تحميل الحسابات من GitHub بنجاح!',
+                githubLoadError: '❌ فشل التحميل من GitHub. تحقق من الإعدادات والرمز.',
+                githubSaveSuccess: '✅ تم الحفظ في GitHub بنجاح!',
+                githubSaveError: '❌ فشل الحفظ في GitHub. تحقق من الإعدادات والرمز.',
+                githubClear: '🧹 تم مسح إعدادات GitHub.',
             }
         };
 
@@ -1227,7 +1290,6 @@
                     msgEl.textContent = t.vpnDetected;
                 }
             }
-            // update maintenance button text
             updateMaintUI();
         }
 
@@ -1242,10 +1304,237 @@
         var logs = JSON.parse(localStorage.getItem('mfa_logs')) || [];
         var maintenanceMode = localStorage.getItem('mfa_maintenance') === 'true';
 
+        // GitHub settings
+        var githubSettings = JSON.parse(localStorage.getItem('mfa_github_settings')) || {
+            owner: '',
+            repo: '',
+            path: 'mcfa.txt',
+            token: ''
+        };
+
+        function saveGitHubSettings() {
+            localStorage.setItem('mfa_github_settings', JSON.stringify(githubSettings));
+        }
+
+        function loadSettingsToUI() {
+            document.getElementById('githubOwner').value = githubSettings.owner || '';
+            document.getElementById('githubRepo').value = githubSettings.repo || '';
+            document.getElementById('githubPath').value = githubSettings.path || 'mcfa.txt';
+            document.getElementById('githubToken').value = githubSettings.token || '';
+        }
+
+        function saveSettingsFromUI() {
+            githubSettings.owner = document.getElementById('githubOwner').value.trim();
+            githubSettings.repo = document.getElementById('githubRepo').value.trim();
+            githubSettings.path = document.getElementById('githubPath').value.trim() || 'mcfa.txt';
+            githubSettings.token = document.getElementById('githubToken').value.trim();
+            saveGitHubSettings();
+        }
+
+        function clearGitHubSettings() {
+            githubSettings = { owner: '', repo: '', path: 'mcfa.txt', token: '' };
+            saveGitHubSettings();
+            loadSettingsToUI();
+            document.getElementById('githubStatus').textContent = LANG[currentLang].githubClear;
+            document.getElementById('githubStatus').style.color = '#ffaa00';
+        }
+
+        // ===========================
+        //  GITHUB API HELPERS
+        // ===========================
+        function getGitHubHeaders() {
+            return {
+                'Authorization': 'token ' + githubSettings.token,
+                'Accept': 'application/vnd.github.v3+json'
+            };
+        }
+
+        function getFileSHA(owner, repo, path, token) {
+            return fetch('https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
+                headers: {
+                    'Authorization': 'token ' + token,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            })
+            .then(function(res) {
+                if (!res.ok) {
+                    if (res.status === 404) return null;
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json().then(function(data) { return data.sha; });
+            });
+        }
+
+        function updateFileContent(owner, repo, path, token, content, sha, message) {
+            var payload = {
+                message: message || 'Update mcfa.txt via MCFA site',
+                content: btoa(unescape(encodeURIComponent(content))),
+                sha: sha
+            };
+            return fetch('https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token ' + token,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            });
+        }
+
+        // ===========================
+        //  LOAD FROM GITHUB
+        // ===========================
+        function loadFromGitHub() {
+            saveSettingsFromUI();
+            var t = LANG[currentLang];
+            var statusEl = document.getElementById('githubStatus');
+            statusEl.textContent = '⏳ Loading...';
+            statusEl.style.color = '#ffaa00';
+
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                statusEl.textContent = '❌ Please fill owner, repo, and token.';
+                statusEl.style.color = '#ff4444';
+                return;
+            }
+
+            var path = githubSettings.path || 'mcfa.txt';
+            var url = 'https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path);
+
+            fetch(url, {
+                headers: getGitHubHeaders()
+            })
+            .then(function(res) {
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        // file does not exist => treat as empty
+                        statusEl.textContent = '📭 File not found, starting empty.';
+                        statusEl.style.color = '#ffaa00';
+                        accounts = [];
+                        claimedCount = 0;
+                        saveAccounts();
+                        updateStats();
+                        return null;
+                    }
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data) return;
+                var content = atob(data.content);
+                // parse accounts
+                var lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
+                var newAccounts = [];
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    var parts;
+                    if (line.indexOf(':') !== -1) parts = line.split(':');
+                    else if (line.indexOf('|') !== -1) parts = line.split('|');
+                    else continue;
+                    if (parts.length >= 2) {
+                        var email = parts[0].trim();
+                        var pass = parts.slice(1).join(':').trim();
+                        if (email && pass) {
+                            newAccounts.push({ email: email, password: pass, claimed: false });
+                        }
+                    }
+                }
+                accounts = newAccounts;
+                claimedCount = 0;
+                // reset claimed count (since we load fresh)
+                // We'll assume none claimed until they claim
+                saveAccounts();
+                // Show success
+                statusEl.textContent = t.githubLoadSuccess + ' (' + accounts.length + ' accounts)';
+                statusEl.style.color = '#00ff00';
+                document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
+                updateStats();
+                logActivity('Loaded accounts from GitHub (' + accounts.length + ')');
+            })
+            .catch(function(err) {
+                statusEl.textContent = t.githubLoadError + ' (' + err.message + ')';
+                statusEl.style.color = '#ff4444';
+                console.error(err);
+            });
+        }
+
+        // ===========================
+        //  SAVE TO GITHUB
+        // ===========================
+        function saveToGitHub() {
+            saveSettingsFromUI();
+            var t = LANG[currentLang];
+            var statusEl = document.getElementById('githubStatus');
+            statusEl.textContent = '⏳ Saving...';
+            statusEl.style.color = '#ffaa00';
+
+            if (!githubSettings.owner || !githubSettings.repo || !githubSettings.token) {
+                statusEl.textContent = '❌ Please fill owner, repo, and token.';
+                statusEl.style.color = '#ff4444';
+                return;
+            }
+
+            // Build content from accounts (only unclaimed? we save all, but claimed ones are already removed)
+            var content = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
+
+            var path = githubSettings.path || 'mcfa.txt';
+            // Get SHA first
+            getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
+            .then(function(sha) {
+                if (sha === null) {
+                    // file doesn't exist, create without sha
+                    var payload = {
+                        message: 'Create mcfa.txt via MCFA site',
+                        content: btoa(unescape(encodeURIComponent(content)))
+                    };
+                    return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'token ' + githubSettings.token,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update mcfa.txt via MCFA site');
+                }
+            })
+            .then(function(res) {
+                if (!res || !res.ok) {
+                    if (res) throw new Error('HTTP ' + res.status);
+                    return;
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                statusEl.textContent = t.githubSaveSuccess;
+                statusEl.style.color = '#00ff00';
+                logActivity('Saved accounts to GitHub (' + accounts.length + ')');
+            })
+            .catch(function(err) {
+                statusEl.textContent = t.githubSaveError + ' (' + err.message + ')';
+                statusEl.style.color = '#ff4444';
+                console.error(err);
+            });
+        }
+
+        // ===========================
+        //  ACCOUNT MANAGEMENT (modified to sync with GitHub after claim)
+        // ===========================
         function saveAccounts() {
             localStorage.setItem('mfa_accounts', JSON.stringify(accounts));
             localStorage.setItem('mfa_claimed', claimedCount.toString());
             updateStats();
+            // also update the bulk input textarea if admin panel is visible
+            if (document.getElementById('adminPanel').classList.contains('active')) {
+                document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
+            }
         }
 
         function updateStats() {
@@ -1266,7 +1555,7 @@
 
             var emptyMsg = document.getElementById('emptyMsg');
             if (available === 0 && total > 0) {
-                emptyMsg.textContent = t.noAccounts;
+                emptyMsg.textContent = t.noAvailable;
                 emptyMsg.classList.add('active');
             } else if (total === 0) {
                 emptyMsg.textContent = t.noAccounts;
@@ -1276,14 +1565,11 @@
             }
         }
 
-        // ===========================
-        //  LOGGING
-        // ===========================
         function logActivity(eventText) {
             var now = new Date();
             var timeStr = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
             logs.push({ time: timeStr, event: eventText });
-            if (logs.length > 200) logs.shift(); // keep last 200
+            if (logs.length > 200) logs.shift();
             localStorage.setItem('mfa_logs', JSON.stringify(logs));
             updateLogTable();
         }
@@ -1330,12 +1616,10 @@
             localStorage.setItem('mfa_maintenance', maintenanceMode.toString());
             logActivity('Maintenance mode ' + (maintenanceMode ? 'ON' : 'OFF'));
             updateMaintUI();
-            // If maintenance is turned ON, show overlay for all non-admin
             checkMaintenanceForVisitor();
         }
 
         function checkMaintenanceForVisitor() {
-            // If maintenance is ON and admin panel is NOT open (or admin not authenticated), show overlay
             var isAdmin = document.getElementById('adminPanel').classList.contains('active');
             if (maintenanceMode && !isAdmin) {
                 document.getElementById('maintenanceOverlay').classList.add('active');
@@ -1485,27 +1769,25 @@
         }
 
         // ===========================
-        //  TOAST NOTIFICATIONS (fake)
+        //  TOAST NOTIFICATIONS
         // ===========================
         var toastInterval = null;
 
         function startFakeNotifications() {
             if (toastInterval) clearInterval(toastInterval);
             toastInterval = setInterval(function() {
-                if (maintenanceMode) return; // don't show during maintenance
+                if (maintenanceMode) return;
                 showFakeToast();
-            }, 10000 + Math.random() * 10000); // 10-20 sec
+            }, 10000 + Math.random() * 10000);
         }
 
         function showFakeToast() {
             var t = LANG[currentLang];
             var emails = ['john.doe', 'sara.ahmed', 'kareem.m', 'lina.h', 'mohammed.k', 'fatima.z', 'ali.r', 'nora.a', 'youssef.t', 'amira.s'];
             var randomEmail = emails[Math.floor(Math.random() * emails.length)] + '@gmail.com';
-            // mask email: first two chars + *** + domain
             var masked = randomEmail.substring(0,2) + '***' + randomEmail.substring(randomEmail.indexOf('@'));
-            var mins = Math.floor(Math.random() * 8) + 1; // 1-8 minutes ago
+            var mins = Math.floor(Math.random() * 8) + 1;
             var msg = t.toastClaim(masked, mins);
-            // if arabic, use arabic version
             if (currentLang === 'ar') {
                 msg = 'قام المستخدم ' + masked + ' بالمطالبة بحساب بنجاح قبل ' + mins + ' دقيقة' + (mins>1?'':'') + '! 🎉';
             }
@@ -1514,23 +1796,22 @@
             toast.className = 'toast';
             toast.textContent = msg;
             container.appendChild(toast);
-            // remove after 5 seconds
             setTimeout(function() {
                 if (toast.parentNode) toast.remove();
             }, 5000);
-            // limit to 3 toasts at a time
             while (container.children.length > 3) {
                 container.removeChild(container.firstChild);
             }
         }
 
         // ===========================
-        //  CLAIM (modified to log)
+        //  CLAIM (with GitHub sync)
         // ===========================
         function claimAccount() {
             var t = LANG[currentLang];
             var display = document.getElementById('accountDisplay');
             var emptyMsg = document.getElementById('emptyMsg');
+            var statusMsg = document.getElementById('statusMsg');
 
             if (!ipChecked) {
                 alert(t.checkingIp);
@@ -1538,10 +1819,9 @@
             }
 
             if (isVPN) {
-                var msg = document.getElementById('statusMsg');
-                msg.textContent = t.vpnDetected;
-                msg.className = 'status-msg active vpn';
-                msg.dataset.type = 'vpn';
+                statusMsg.textContent = t.vpnDetected;
+                statusMsg.className = 'status-msg active vpn';
+                statusMsg.dataset.type = 'vpn';
                 return;
             }
 
@@ -1550,10 +1830,9 @@
                 if (remaining > 0) {
                     var mins = Math.floor(remaining / 60000);
                     var secs = Math.floor((remaining % 60000) / 1000);
-                    var msg = document.getElementById('statusMsg');
-                    msg.textContent = t.cooldownMsg(mins, secs);
-                    msg.className = 'status-msg active cooldown';
-                    msg.dataset.type = 'cooldown';
+                    statusMsg.textContent = t.cooldownMsg(mins, secs);
+                    statusMsg.className = 'status-msg active cooldown';
+                    statusMsg.dataset.type = 'cooldown';
                     document.getElementById('claimBtn').disabled = true;
                     if (cooldownTimerInterval) clearInterval(cooldownTimerInterval);
                     cooldownTimerInterval = setInterval(function() {
@@ -1604,14 +1883,17 @@
                 return;
             }
 
-            accounts[unclaimedIdx].claimed = true;
+            // Mark claimed locally
+            var claimedAccount = accounts[unclaimedIdx];
+            accounts.splice(unclaimedIdx, 1); // remove from array
             claimedCount++;
             saveAccounts();
 
-            // log the claim
+            // Log
             var location = currentUserIP ? ' (IP: ' + currentUserIP + ')' : '';
             logActivity('Account claimed by ' + (currentUserIP || 'unknown') + location);
 
+            // Set cooldown
             if (currentUserIP) {
                 setCooldown(currentUserIP);
                 claimCooldownActive = true;
@@ -1647,10 +1929,9 @@
                 }, 1000);
             }
 
-            var acc = accounts[unclaimedIdx];
-            document.getElementById('emailValue').textContent = acc.email;
-            document.getElementById('passwordValue').textContent = acc.password;
-
+            // Show account
+            document.getElementById('emailValue').textContent = claimedAccount.email;
+            document.getElementById('passwordValue').textContent = claimedAccount.password;
             emptyMsg.classList.remove('active');
             display.classList.add('active');
 
@@ -1665,6 +1946,49 @@
             }, 1500);
 
             updateStats();
+
+            // ---------- SYNC WITH GITHUB ----------
+            // After local update, push to GitHub if settings exist
+            if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
+                var content = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
+                var path = githubSettings.path || 'mcfa.txt';
+                getFileSHA(githubSettings.owner, githubSettings.repo, path, githubSettings.token)
+                .then(function(sha) {
+                    if (sha === null) {
+                        // create
+                        var payload = {
+                            message: 'Update after claim via MCFA site',
+                            content: btoa(unescape(encodeURIComponent(content)))
+                        };
+                        return fetch('https://api.github.com/repos/' + githubSettings.owner + '/' + githubSettings.repo + '/contents/' + encodeURIComponent(path), {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': 'token ' + githubSettings.token,
+                                'Accept': 'application/vnd.github.v3+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                    } else {
+                        return updateFileContent(githubSettings.owner, githubSettings.repo, path, githubSettings.token, content, sha, 'Update after claim via MCFA site');
+                    }
+                })
+                .then(function(res) {
+                    if (res && !res.ok) throw new Error('HTTP ' + res.status);
+                    if (res) return res.json();
+                })
+                .then(function() {
+                    logActivity('GitHub sync after claim successful');
+                    document.getElementById('githubStatus').textContent = '✅ Synced after claim';
+                    document.getElementById('githubStatus').style.color = '#00ff00';
+                })
+                .catch(function(err) {
+                    console.warn('GitHub sync after claim failed:', err);
+                    document.getElementById('githubStatus').textContent = '⚠️ GitHub sync failed: ' + err.message;
+                    document.getElementById('githubStatus').style.color = '#ff4444';
+                    logActivity('GitHub sync failed after claim: ' + err.message);
+                });
+            }
         }
 
         // ===========================
@@ -1716,7 +2040,7 @@
             if (input === ADMIN_PASSWORD) {
                 closePasswordModal();
                 document.getElementById('adminPanel').classList.add('active');
-                // after admin opens, check maintenance overlay
+                loadSettingsToUI();
                 checkMaintenanceForVisitor();
                 var ta = document.getElementById('bulkInput');
                 if (!ta.value.trim()) {
@@ -1724,6 +2048,8 @@
                         'الصق الحسابات بهذا الشكل:\nemail:pass\nemail:pass' :
                         'Paste accounts in format:\nemail:pass\nemail:pass';
                 }
+                // populate textarea with current accounts
+                ta.value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 updateStats();
                 updateLogTable();
                 updateMaintUI();
@@ -1745,7 +2071,7 @@
         });
 
         // ===========================
-        //  ADMIN: ADD ACCOUNTS (log)
+        //  ADMIN: ADD ACCOUNTS (local only, then sync)
         // ===========================
         function addAccounts() {
             var t = LANG[currentLang];
@@ -1767,6 +2093,7 @@
                     var email = parts[0].trim();
                     var password = parts.slice(1).join(':').trim();
                     if (email && password) {
+                        // avoid duplicates? we just append
                         accounts.push({ email: email, password: password, claimed: false });
                         added++;
                     }
@@ -1775,15 +2102,19 @@
 
             if (added > 0) {
                 saveAccounts();
-                document.getElementById('bulkInput').value = '';
+                document.getElementById('bulkInput').value = accounts.map(function(a) { return a.email + ':' + a.password; }).join('\n');
                 alert(t.addSuccess(added));
-                logActivity('Added ' + added + ' accounts');
+                logActivity('Added ' + added + ' accounts locally');
+                // Save to GitHub if settings exist
+                if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
+                    saveToGitHub();
+                }
                 document.getElementById('adminPanel').classList.add('active');
             }
         }
 
         // ===========================
-        //  ADMIN: CLEAR ALL (log)
+        //  ADMIN: CLEAR ALL
         // ===========================
         function clearAccounts() {
             var t = LANG[currentLang];
@@ -1794,6 +2125,10 @@
             document.getElementById('accountDisplay').classList.remove('active');
             alert(t.clearDone);
             logActivity('Cleared all accounts');
+            // Save to GitHub if settings exist
+            if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
+                saveToGitHub();
+            }
         }
 
         // ===========================
@@ -1818,18 +2153,29 @@
         // ===========================
         createParticles();
 
-        // increment visitor counter
         visitorCount++;
         localStorage.setItem('mfa_visitors', visitorCount.toString());
         logActivity('Page visit (total ' + visitorCount + ')');
 
-        if (accounts.length === 0) {
-            accounts = [
-                { email: 'demo1@mcfa.com', password: 'pass123', claimed: false },
-                { email: 'demo2@mcfa.com', password: 'pass456', claimed: false },
-                { email: 'demo3@mcfa.com', password: 'pass789', claimed: false },
-            ];
-            saveAccounts();
+        // Load settings from localStorage
+        loadSettingsToUI();
+
+        // If we have GitHub settings, auto-load from GitHub
+        if (githubSettings.owner && githubSettings.repo && githubSettings.token) {
+            // Auto load after a short delay
+            setTimeout(function() {
+                loadFromGitHub();
+            }, 500);
+        } else {
+            // fallback: if no accounts, use demo accounts
+            if (accounts.length === 0) {
+                accounts = [
+                    { email: 'demo1@mcfa.com', password: 'pass123', claimed: false },
+                    { email: 'demo2@mcfa.com', password: 'pass456', claimed: false },
+                    { email: 'demo3@mcfa.com', password: 'pass789', claimed: false },
+                ];
+                saveAccounts();
+            }
         }
 
         var actualClaimed = 0;
@@ -1845,42 +2191,37 @@
         checkVPNAndIP();
         startFakeNotifications();
 
-        // admin panel close on escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.getElementById('adminPanel').classList.remove('active');
                 closePasswordModal();
-                // re-check maintenance overlay
                 checkMaintenanceForVisitor();
             }
         });
 
-        // if admin panel is closed, check maintenance
         document.addEventListener('click', function(e) {
             var panel = document.getElementById('adminPanel');
             var toggle = document.getElementById('adminToggleBtn');
             if (panel.classList.contains('active')) {
                 if (!panel.contains(e.target) && !toggle.contains(e.target) &&
                     !document.getElementById('passwordOverlay').classList.contains('active')) {
-                    // keep open if click outside (we can close if needed, but we keep open)
+                    // keep open
                 }
             }
-            // update maintenance overlay
             checkMaintenanceForVisitor();
         });
 
-        // initial maintenance check
         checkMaintenanceForVisitor();
         updateMaintUI();
 
-        console.log('🚀 MCFA Accounts loaded successfully!');
+        console.log('🚀 MCFA Accounts with GitHub integration loaded!');
         console.log('🔑 Admin password: 123321');
         console.log('⏳ Cooldown: 10 minutes per IP');
         console.log('📊 Total accounts:', accounts.length);
         console.log('🛡️ VPN detection enabled via ipapi.co');
         console.log('👁️ Visitors:', visitorCount);
         console.log('📋 Log entries:', logs.length);
+        console.log('🔗 GitHub settings loaded:', githubSettings.owner ? 'Yes' : 'No');
     </script>
-
 </body>
 </html>
